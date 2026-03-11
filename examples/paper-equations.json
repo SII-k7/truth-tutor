@@ -1,0 +1,17 @@
+{
+  "mode": "paper-reading",
+  "topic": "Diffusion-model objectives",
+  "paperTitle": "Denoising Diffusion Probabilistic Models",
+  "paperId": "arXiv:2006.11239",
+  "paperDomain": "ml",
+  "paperStage": "equations",
+  "confusionLocation": "training objective and variational bound",
+  "mainBlocker": "probability + objective understanding",
+  "confusion": "Once the paper moves from the intuition into the objective, I lose the thread. I do not know which terms matter and which derivation steps I am supposed to care about.",
+  "currentUnderstanding": "I have basic calculus and linear algebra, but my probability intuition is weak and I usually skim derivations.",
+  "goals": "Tell me whether I should keep reading or go patch my math first, and what the shortest patch path is.",
+  "studyLevel": "beginner graduate",
+  "weeklyHours": 10,
+  "strictness": "strict",
+  "language": "Chinese"
+}

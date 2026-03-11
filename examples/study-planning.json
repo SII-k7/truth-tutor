@@ -1,4 +1,5 @@
 {
+  "mode": "general",
   "topic": "Probability for diffusion-model papers",
   "materialType": "study-plan",
   "confusion": "我读 diffusion 论文时总在噪声建模、likelihood、变分目标附近掉线。每次都觉得自己差一点点，但其实一直没补上。",

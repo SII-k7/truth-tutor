@@ -1,0 +1,17 @@
+{
+  "mode": "alphaxiv",
+  "source": "alphaxiv",
+  "topic": "Transformer attention",
+  "paperTitle": "Attention Is All You Need",
+  "paperId": "arXiv:1706.03762",
+  "paperStage": "method",
+  "confusionLocation": "multi-head attention motivation",
+  "userQuestion": "Why is multi-head attention better than just doing one attention operation with a larger hidden size?",
+  "aiAnswer": "Multi-head attention lets the model attend to information from different representation subspaces at different positions, so each head can capture different relationships.",
+  "userReaction": "I can repeat that sentence, but I still do not feel the mechanism. It sounds like a slogan, not an explanation.",
+  "currentUnderstanding": "I know matrix multiplication, softmax, and the rough QKV flow, but I do not have an intuition for what each head is buying me.",
+  "goals": "Diagnose why alphaXiv's explanation did not land for me and tell me what I should ask or study next.",
+  "studyLevel": "CS undergraduate",
+  "strictness": "direct",
+  "language": "Chinese"
+}

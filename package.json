@@ -1,8 +1,11 @@
 {
   "name": "truth-tutor",
-  "version": "0.1.0",
-  "description": "Prompt engine and CLI for brutally honest learning-gap diagnosis and recovery planning.",
+  "version": "0.1.1",
+  "description": "Diagnosis-first learning coach with dedicated paper-reading and alphaXiv recovery modes.",
   "type": "module",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
   "bin": {
     "truth-tutor": "./bin/truth-tutor.mjs"
   },
@@ -17,6 +20,8 @@
     "education",
     "prompt-engineering",
     "paper-reading",
+    "research",
+    "alphaxiv",
     "llm",
     "coaching"
   ],

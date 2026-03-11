@@ -1,4 +1,5 @@
 {
+  "mode": "general",
   "topic": "Transformer attention",
   "materialType": "concept",
   "confusion": "我能复述 Q、K、V，但一旦问到为什么 attention 比固定卷积核更适合建模长距离依赖，我就讲不清了。",

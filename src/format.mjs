@@ -2,6 +2,7 @@ export function formatPromptAsMarkdown(result) {
   return [
     '# Truth Tutor Prompt Pack',
     '',
+    `- Mode: ${result.mode}`,
     `- Strictness: ${result.strictness.label}`,
     `- Tone: ${result.strictness.tone}`,
     '',

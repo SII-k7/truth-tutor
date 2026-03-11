@@ -1,22 +1,33 @@
 # Truth Tutor
 
-> An honest learning coach for people who need diagnosis, not comfort.
+> A diagnosis-first learning coach for people who do not need comfort — especially graduate students and researchers stuck on papers.
 
-Truth Tutor is an open-source prompt engine and CLI for building AI study assistants that do three things well:
+Truth Tutor is an open-source prompt engine, CLI, and OpenClaw skill for one specific job:
 
 1. tell you **why** you did not understand something,
 2. identify the **missing prerequisite knowledge**, and
 3. prescribe a **concrete recovery plan**.
 
-It is designed for paper reading, concept debugging, technical self-study, and skill building. The goal is not to sound kind. The goal is to help the user improve.
+Most AI study tools try to explain things more simply. Truth Tutor is built to do something harsher and more useful: tell you what your actual bottleneck is.
+
+## What changed in v0.1.1
+
+Truth Tutor is now split into **three operating modes**:
+
+- **general** — diagnosis-first learning coach for concepts, interview prep, self-study, and skill building
+- **paper-reading** — a dedicated module for research paper reading, with section-by-section reread order and prerequisite ladders
+- **alphaxiv** — a recovery mode for when you already asked alphaXiv and still do not actually get the paper
+
+If you are a grad student or PhD student, the paper-reading module is the point.
 
 ## Why this exists
 
 A lot of AI study tools only do "let me explain this more simply." That helps a little, but it often hides the real problem:
 
 - you are missing prerequisite math,
-- your transformer/probability/optimization intuition is weak,
+- your transformer / probability / optimization intuition is weak,
 - you are reading details before understanding the problem setup,
+- you are skimming derivations you are not ready for,
 - or your note-taking and verification loop is broken.
 
 Truth Tutor is built to say the quiet part out loud.
@@ -26,59 +37,116 @@ Truth Tutor is built to say the quiet part out loud.
 - **Critique the work, not the person.**
 - **No empty praise.** If the user is weak somewhere, say it clearly.
 - **Diagnosis before explanation.** First find the gap. Then teach.
+- **Paper reading deserves its own module.** The failure modes are different and need specialized prompts.
 - **Action beats vibes.** Every critique should end with a repair plan.
 - **Strictness is configurable.** Tone can range from direct to brutal, but never abusive.
 
-## What it does
+## Modes
 
-- Generates structured prompts for a "truth-first" tutor agent
-- Supports configurable strictness levels: `soft`, `direct`, `strict`, `brutal`
-- Produces a fixed response contract so outputs stay actionable
-- Can call any OpenAI-compatible chat API when credentials are available
-- Works especially well for:
-  - paper reading
-  - technical interview prep
-  - concept debugging
-  - study planning
-  - learning gap diagnosis
+### 1) general
 
-## Response contract
+Use this when the user wants a blunt diagnosis of a concept, topic, skill gap, study plan, or interview-prep weakness.
 
-Truth Tutor asks the model to answer with these sections:
+### 2) paper-reading
 
-1. **Reality Check** — what is actually going wrong
-2. **Root Cause** — why the user is stuck
-3. **Missing Foundations** — prerequisite topics that are weak or absent
-4. **Stop Doing** — behaviors wasting time
-5. **Recovery Plan** — concrete next steps by priority
-6. **Practice Drills** — short exercises to close the gap
-7. **Win Condition** — how the user can verify improvement
+Use this when the user is reading a paper and needs more than simplification.
+
+This mode is specialized for:
+- problem framing
+- notation bottlenecks
+- architecture intuition gaps
+- objective / derivation confusion
+- experiment / ablation interpretation
+- reread ordering
+- prerequisite ladders for ML / systems / math papers
+
+### 3) alphaxiv
+
+Use this when the user already asked alphaXiv and still feels stuck.
+
+This mode diagnoses:
+- whether the problem is weak foundations,
+- whether the question asked to alphaXiv was too vague,
+- whether the answer was too abstract,
+- and what sharper follow-up question should be asked next.
+
+## Response contracts
+
+### General mode
+
+1. Reality Check
+2. Root Cause
+3. Missing Foundations
+4. Stop Doing
+5. Recovery Plan
+6. Practice Drills
+7. Win Condition
+
+### Paper-reading mode
+
+1. Reality Check
+2. Paper in Plain Terms
+3. Why You Are Stuck Here
+4. Missing Foundations
+5. Section-by-Section Reread Order
+6. Paper Recovery Plan
+7. Verification Drills
+
+### alphaXiv mode
+
+1. Reality Check
+2. What alphaXiv Already Gave You
+3. Why It Still Did Not Land
+4. Missing Foundations
+5. Better Next Question for alphaXiv
+6. Recovery Plan
+7. Verification Drills
 
 ## Quick start
 
-### 1) Generate a prompt pack
+### 1) General prompt pack
 
 ```bash
 node ./bin/truth-tutor.mjs prompt \
-  --topic "Diffusion models" \
-  --material-title "High-Resolution Image Synthesis with Latent Diffusion Models" \
-  --material-type paper \
-  --confusion "I can follow the architecture section, but I don't understand why latent space helps and where the compression tradeoff comes from." \
-  --understanding "I know basic CNNs and VAEs, but my probability background is weak." \
+  --topic "Transformer attention" \
+  --confusion "I can recite QKV but still don't feel why attention works." \
+  --understanding "I know matrix multiplication and linear algebra." \
+  --strictness direct
+```
+
+### 2) Dedicated paper-reading prompt pack
+
+```bash
+node ./bin/truth-tutor.mjs paper-prompt \
+  --paper-title "High-Resolution Image Synthesis with Latent Diffusion Models" \
+  --paper-id "arXiv:2112.10752" \
+  --paper-stage method \
+  --confusion-location "latent space design and compression tradeoff" \
+  --confusion "I still don't understand why latent space helps." \
+  --understanding "I know CNNs and a little VAE intuition." \
   --strictness strict
 ```
 
-### 2) Call a model directly
+### 3) alphaXiv recovery flow
+
+```bash
+node ./bin/truth-tutor.mjs alphaxiv-prompt \
+  --paper-title "Attention Is All You Need" \
+  --paper-stage method \
+  --user-question "Why is multi-head attention better than one large head?" \
+  --ai-answer "It attends to different representation subspaces." \
+  --user-reaction "That still feels like a slogan, not a mechanism." \
+  --understanding "I know QKV and softmax." \
+  --strictness direct
+```
+
+### 4) Call a model directly
 
 ```bash
 export OPENAI_API_KEY=your_key
 export OPENAI_MODEL=gpt-4.1-mini
 
-node ./bin/truth-tutor.mjs ask \
-  --topic "Transformer attention" \
-  --confusion "I can recite QKV but still don't feel why attention works." \
-  --understanding "I know matrix multiplication and basic linear algebra." \
-  --strictness direct
+node ./bin/truth-tutor.mjs paper-ask --input ./examples/paper-reading.json
 ```
 
 You can also point it at any OpenAI-compatible endpoint with:
@@ -91,22 +159,37 @@ export OPENAI_BASE_URL=https://api.openai.com/v1
 
 Truth Tutor works best when you provide:
 
-- `topic`
-- `materialTitle` or `materialType`
+- `mode`
+- `topic` or `paperTitle`
 - `confusion`
 - `currentUnderstanding`
 - `goals`
 - `studyLevel`
-- `weeklyHours`
 - `strictness`
+
+Paper-reading mode additionally benefits from:
+
+- `paperId`
+- `paperUrl`
+- `paperStage`
+- `confusionLocation`
+- `mainBlocker`
+
+alphaXiv mode additionally benefits from:
+
+- `userQuestion`
+- `aiAnswer`
+- `userReaction`
 
 If context is incomplete, the prompt explicitly instructs the model to say what is missing instead of hallucinating a diagnosis.
 
-## More examples
+## Examples
 
 See the JSON examples in `examples/`:
 
 - `paper-reading.json`
+- `paper-equations.json`
+- `alphaxiv-session.json`
 - `concept-debugging.json`
 - `study-planning.json`
 
@@ -116,13 +199,16 @@ See the JSON examples in `examples/`:
 import { buildPrompt } from 'truth-tutor';
 
 const result = buildPrompt({
-  topic: 'Attention',
-  confusion: 'I can repeat QKV but I cannot explain why attention works.',
-  currentUnderstanding: 'I know linear algebra.',
+  mode: 'paper-reading',
+  paperTitle: 'Attention Is All You Need',
+  paperStage: 'method',
+  confusion: 'I still do not get why multi-head attention helps.',
+  currentUnderstanding: 'I know QKV and softmax.',
   strictness: 'direct',
   language: 'Chinese',
 });
 
+console.log(result.mode);
 console.log(result.systemPrompt);
 console.log(result.userPrompt);
 ```
@@ -161,12 +247,27 @@ The system prompt includes guardrails to keep critique attached to the work and 
 ```text
 truth-tutor/
 ├── bin/
+├── docs/
 ├── examples/
 ├── src/
+│   └── modules/
 ├── test/
 └── skill/
     └── truth-tutor/
 ```
+
+## alphaXiv integration notes
+
+There is no fragile browser automation in the current MVP. The first integration path is workflow-level:
+
+1. ask alphaXiv,
+2. copy the question + answer + what still feels unclear,
+3. run Truth Tutor in `alphaxiv` mode,
+4. get a sharper diagnosis plus better next questions.
+
+This is the fastest realistic integration path and matches real paper-reading behavior.
+
+More detail: `docs/alphaxiv-integration.md`
 
 ## Skill packaging
 
@@ -188,10 +289,18 @@ python3 /opt/homebrew/lib/node_modules/openclaw/skills/skill-creator/scripts/pac
 - [x] OpenAI-compatible CLI call path
 - [x] Strictness presets
 - [x] OpenClaw skill version
+- [x] Dedicated paper-reading module
+- [x] alphaXiv recovery mode
 - [ ] Web UI
-- [ ] AlphaArxiv browser helper / integration
-- [ ] Gap taxonomy expansion by subject (math / systems / ML / economics / writing)
+- [ ] alphaXiv browser helper / extension bridge
+- [ ] Subject-specific gap taxonomies (math / systems / ML / economics / writing)
 - [ ] Longitudinal learner memory
+
+## Release / launch assets
+
+- `docs/launch-copy.md`
+- `CHANGELOG.md`
+- `docs/alphaxiv-integration.md`
 
 ## License
 
