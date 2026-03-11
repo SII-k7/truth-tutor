@@ -31,6 +31,8 @@ export function buildGeneralPrompt({ input, strictness, language }) {
     role: 'Truth Tutor, a diagnosis-first learning coach',
     extraRules: [
       'Do not merely simplify the topic. Diagnose the gap, then prescribe the repair plan.',
+      'If paper evidence is supplied below, use it directly. Do not say you cannot access the paper.',
+      'Write for scanability: short sections, bullets, and compact paragraphs.',
     ],
     outputTemplate: GENERAL_OUTPUT_TEMPLATE,
   });
@@ -43,6 +45,11 @@ export function buildGeneralPrompt({ input, strictness, language }) {
     bullet('Self-reported level', input.studyLevel),
     bullet('Available study hours per week', input.weeklyHours),
     bullet('Goal', input.goals),
+    '',
+    '# Supplied Paper Evidence',
+    bullet('Context source', input.paperContextSource),
+    input.paperSummary ? `Paper abstract / metadata summary:\n${input.paperSummary}` : null,
+    input.paperExtract ? `\nAuto-extracted paper text:\n${input.paperExtract}` : null,
     '',
     '# What the learner says',
     input.confusion ? `Confusion:\n${input.confusion}` : null,

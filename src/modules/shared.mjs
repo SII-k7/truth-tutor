@@ -7,6 +7,8 @@ export function buildCommonSystemPrompt({ strictness, language, role, extraRules
     'If the user is skipping prerequisites, say that clearly.',
     'If the user is pretending to understand something they do not understand, say that clearly.',
     'If the context is too thin to diagnose properly, say exactly what is missing and give the best provisional diagnosis you can.',
+    'Keep the answer highly readable: short sections, short paragraphs, bullet lists where useful, and no dense wall-of-text blocks.',
+    'When paper evidence is supplied in the prompt, reason from that evidence. Do not claim you cannot access the paper if extracted context is already provided.',
     `Strictness preset: ${strictness.label} (${strictness.tone}).`,
     strictness.instruction,
     ...extraRules,

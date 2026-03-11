@@ -6,6 +6,7 @@ import { buildPrompt } from './build-prompt.mjs';
 import { validateInput } from './input.mjs';
 import { askModel } from './model-client.mjs';
 import { normalizeMode } from './modes.mjs';
+import { searchArxiv, enrichInputWithPaperContext } from './paper-context.mjs';
 import { resolveApiConfig } from './provider-config.mjs';
 
 const PUBLIC_DIR = new URL('./web-ui/', import.meta.url);
@@ -32,6 +33,11 @@ export async function startWebServer({ host = '127.0.0.1', port = 3474, openBrow
         return sendJson(res, 200, { items: await listExamples() });
       }
 
+      if (req.method === 'GET' && url.pathname === '/api/arxiv-search') {
+        const query = url.searchParams.get('q') || '';
+        return sendJson(res, 200, { items: await searchArxiv(query, 6) });
+      }
+
       if (req.method === 'GET' && url.pathname.startsWith('/api/examples/')) {
         const name = decodeURIComponent(url.pathname.replace('/api/examples/', ''));
         return sendJson(res, 200, await readExample(name));
@@ -39,14 +45,14 @@ export async function startWebServer({ host = '127.0.0.1', port = 3474, openBrow
 
       if (req.method === 'POST' && url.pathname === '/api/prompt') {
         const input = await readJsonBody(req);
-        const normalized = normalizeInputPayload(input);
+        const normalized = await enrichInputWithPaperContext(normalizeInputPayload(input));
         const prompt = buildPrompt(validateInput(normalized));
         return sendJson(res, 200, prompt);
       }
 
       if (req.method === 'POST' && url.pathname === '/api/ask') {
         const body = await readJsonBody(req);
-        const input = normalizeInputPayload(body.input || body);
+        const input = await enrichInputWithPaperContext(normalizeInputPayload(body.input || body));
         const prompt = buildPrompt(validateInput(input));
         const result = await askModel({
           apiStyle: body.apiStyle,
@@ -60,6 +66,7 @@ export async function startWebServer({ host = '127.0.0.1', port = 3474, openBrow
         });
 
         return sendJson(res, 200, {
+          input,
           prompt,
           result,
         });

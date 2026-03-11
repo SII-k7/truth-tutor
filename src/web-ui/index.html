@@ -9,7 +9,33 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <div class="brand">Truth Tutor</div>
+        <div class="brand-container">
+          <div id="ai-mascot" class="ai-mascot">
+            <div class="mascot-body">
+              <div class="mascot-face">
+                <div class="mascot-eyes">
+                  <div class="mascot-eye left"></div>
+                  <div class="mascot-eye right"></div>
+                </div>
+                <div class="mascot-nose"></div>
+                <div class="mascot-mouth"></div>
+              </div>
+              <div class="mascot-hat">
+                <div class="hat-band"></div>
+                <div class="hat-brim"></div>
+              </div>
+              <div class="mascot-pipe"></div>
+            </div>
+            <div class="mascot-thinking" id="mascot-thinking">
+              <div class="thinking-bubble">
+                <span class="thinking-dot"></span>
+                <span class="thinking-dot"></span>
+                <span class="thinking-dot"></span>
+              </div>
+            </div>
+          </div>
+          <span class="brand">Truth Tutor</span>
+        </div>
 
         <div class="control-cluster">
           <div class="control-group">
@@ -46,20 +72,25 @@
 
       <main class="workspace">
         <section class="viewer-panel">
+          <div class="paper-search-shell">
+            <input id="paper-search" class="paper-search-input" placeholder="Search arXiv by paper title…" />
+            <div id="paper-results" class="paper-results hidden"></div>
+          </div>
+
           <div id="paper-caption" class="paper-caption">No paper loaded</div>
           <iframe id="pdf-frame" title="Paper PDF preview"></iframe>
           <div id="pdf-empty" class="empty-view visible">
-            <div class="empty-copy">把 arXiv / PDF 链接直接贴进右侧对话框。</div>
+            <div class="empty-copy">输入论文标题搜索 arXiv，或者在右侧直接贴 arXiv / PDF 链接。</div>
           </div>
         </section>
 
         <section class="chat-panel">
           <div id="chat-thread" class="chat-thread">
-            <div id="empty-thread" class="empty-thread">Paste a paper link and tell me where you are stuck.</div>
+            <div id="empty-thread" class="empty-thread">Paste a paper link or search a paper title, then tell me exactly where you are stuck.</div>
           </div>
 
           <div class="composer">
-            <textarea id="confusion" rows="8" placeholder="贴论文链接，然后直接说你哪里没懂。"></textarea>
+            <textarea id="confusion" rows="8" placeholder="直接说你哪里没懂。Enter 发送，Shift+Enter 换行。"></textarea>
             <div class="composer-bar">
               <span id="status-text" class="status-text"></span>
               <button id="run-diagnosis" class="send-btn">Send</button>

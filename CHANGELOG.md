@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.3.0 - 2026-03-11
+
+### Added
+- Enter key sends message (Shift+Enter for newline)
+- ArXiv paper title search in left panel
+- Smart paper context injection (no more "cannot access PDF")
+- Enhanced response readability with markdown rendering
+- Interactive follow-up options based on AI-identified weak areas
+- AI thinking animation (spinner)
+- Animated AI mascot (Sherlock Holmes style) with mouse tracking
+- Premium UI refinements
+
+### Changed
+- Improved paper excerpt selection based on user question keywords
+
+---
+
 ## 0.2.0 - 2026-03-11
 
 ### Added
