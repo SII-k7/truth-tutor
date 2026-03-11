@@ -81,11 +81,11 @@ function bindMascotInteractions() {
     const dy = event.clientY - cy;
 
     // Rotate entire head based on mouse position
-    const maxRot = 8;
-    const rx = Math.max(-maxRot, Math.min(maxRot, dy / 40));
-    const ry = Math.max(-maxRot, Math.min(maxRot, dx / 40));
+    const maxRot = 15;
+    const rx = Math.max(-maxRot, Math.min(maxRot, dy / 30));
+    const ry = Math.max(-maxRot, Math.min(maxRot, dx / 30));
 
-    const head = mascot.querySelector('.mascot-head');
+    const head = mascot.querySelector('.mascot-head-3d');
     if (head) {
       head.style.transform = `rotateX(${-rx}deg) rotateY(${ry}deg)`;
     }
