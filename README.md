@@ -10,9 +10,17 @@ Truth Tutor is an open-source prompt engine, CLI, and OpenClaw skill for one spe
 
 Most AI study tools try to explain things more simply. Truth Tutor is built to do something harsher and more useful: tell you what your actual bottleneck is.
 
-## What changed in v0.1.1
+## What changed in v0.2.0
 
-Truth Tutor is now split into **three operating modes**:
+Truth Tutor now has a **minimal paper-reading Web UI** designed around the actual workflow:
+
+- **left side:** the paper PDF
+- **right side:** the conversation
+- **top controls only:** feature mode + conversation style
+
+No prompt inspector. No JSON pane. No form-heavy clutter on the home screen.
+
+Truth Tutor is also split into **three operating modes**:
 
 - **general** — diagnosis-first learning coach for concepts, interview prep, self-study, and skill building
 - **paper-reading** — a dedicated module for research paper reading, with section-by-section reread order and prerequisite ladders
@@ -142,6 +150,8 @@ node ./bin/truth-tutor.mjs alphaxiv-prompt \
 
 ### 4) Call a model directly
 
+#### OpenAI-compatible
+
 ```bash
 export OPENAI_API_KEY=your_key
 export OPENAI_MODEL=gpt-4.1-mini
@@ -153,6 +163,23 @@ You can also point it at any OpenAI-compatible endpoint with:
 
 ```bash
 export OPENAI_BASE_URL=https://api.openai.com/v1
+```
+
+#### Anthropic-compatible / local MiniMax
+
+Truth Tutor now also supports Anthropic-compatible endpoints.
+
+If you run it on the same machine as OpenClaw and you already have a local `minimax-cn` profile configured there, `truth-tutor *-ask` will automatically fall back to that MiniMax profile when no explicit API settings are provided.
+
+You can also set it explicitly:
+
+```bash
+export TRUTH_TUTOR_API_STYLE=anthropic
+export ANTHROPIC_BASE_URL=https://api.minimaxi.com/anthropic
+export ANTHROPIC_API_KEY=your_key
+export ANTHROPIC_MODEL=MiniMax-M2.5
+
+truth-tutor paper-ask --input ./examples/paper-reading.json
 ```
 
 ## Input model
@@ -181,7 +208,25 @@ alphaXiv mode additionally benefits from:
 - `aiAnswer`
 - `userReaction`
 
+For model calls, Truth Tutor supports both:
+
+- OpenAI-compatible chat completions
+- Anthropic-compatible messages APIs
+
 If context is incomplete, the prompt explicitly instructs the model to say what is missing instead of hallucinating a diagnosis.
+
+## Web UI
+
+```bash
+truth-tutor web
+```
+
+This launches a local browser-based interface designed around a simple rule: **less is more**.
+
+- left-side PDF workspace
+- right-side conversation pane
+- top-only controls for feature mode and conversation style
+- direct model calls against your local default setup
 
 ## Examples
 

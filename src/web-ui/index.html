@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Truth Tutor</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">Truth Tutor</div>
+
+        <div class="control-cluster">
+          <div class="control-group">
+            <span class="control-label">功能</span>
+            <div class="segmented" data-target="mode">
+              <button type="button" class="seg-btn active" data-value="paper-reading">Paper</button>
+              <button type="button" class="seg-btn" data-value="alphaxiv">alphaXiv</button>
+              <button type="button" class="seg-btn" data-value="general">General</button>
+            </div>
+            <select id="mode" class="hidden-native">
+              <option value="paper-reading" selected>paper-reading</option>
+              <option value="alphaxiv">alphaxiv</option>
+              <option value="general">general</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <span class="control-label">对话风格</span>
+            <div class="segmented" data-target="strictness">
+              <button type="button" class="seg-btn" data-value="soft">soft</button>
+              <button type="button" class="seg-btn active" data-value="direct">direct</button>
+              <button type="button" class="seg-btn" data-value="strict">strict</button>
+              <button type="button" class="seg-btn" data-value="brutal">brutal</button>
+            </div>
+            <select id="strictness" class="hidden-native">
+              <option value="soft">soft</option>
+              <option value="direct" selected>direct</option>
+              <option value="strict">strict</option>
+              <option value="brutal">brutal</option>
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="viewer-panel">
+          <div id="paper-caption" class="paper-caption">No paper loaded</div>
+          <iframe id="pdf-frame" title="Paper PDF preview"></iframe>
+          <div id="pdf-empty" class="empty-view visible">
+            <div class="empty-copy">把 arXiv / PDF 链接直接贴进右侧对话框。</div>
+          </div>
+        </section>
+
+        <section class="chat-panel">
+          <div id="chat-thread" class="chat-thread">
+            <div id="empty-thread" class="empty-thread">Paste a paper link and tell me where you are stuck.</div>
+          </div>
+
+          <div class="composer">
+            <textarea id="confusion" rows="8" placeholder="贴论文链接，然后直接说你哪里没懂。"></textarea>
+            <div class="composer-bar">
+              <span id="status-text" class="status-text"></span>
+              <button id="run-diagnosis" class="send-btn">Send</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <div hidden>
+        <input id="topic" />
+        <input id="paperTitle" />
+        <input id="paperId" />
+        <input id="paperUrl" />
+        <input id="paperDomain" />
+        <input id="paperStage" />
+        <input id="confusionLocation" />
+        <input id="mainBlocker" />
+        <input id="studyLevel" />
+        <input id="weeklyHours" />
+        <input id="goals" />
+        <textarea id="currentUnderstanding"></textarea>
+        <textarea id="extraContext"></textarea>
+        <textarea id="userQuestion"></textarea>
+        <textarea id="aiAnswer"></textarea>
+        <textarea id="userReaction"></textarea>
+      </div>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

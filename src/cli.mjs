@@ -4,7 +4,8 @@ import { parseArgs } from 'node:util';
 import { buildPrompt } from './build-prompt.mjs';
 import { formatPromptAsMarkdown } from './format.mjs';
 import { loadInput, validateInput } from './input.mjs';
-import { askOpenAICompatible } from './openai-compatible.mjs';
+import { askModel } from './model-client.mjs';
+import { startWebServer } from './web-server.mjs';
 
 const OPTIONS = {
   input: { type: 'string' },
@@ -33,11 +34,14 @@ const OPTIONS = {
   'user-reaction': { type: 'string' },
   output: { type: 'string' },
   json: { type: 'boolean', default: false },
+  'api-style': { type: 'string' },
   'api-base-url': { type: 'string' },
   'api-key': { type: 'string' },
   model: { type: 'string' },
   temperature: { type: 'string' },
   timeout: { type: 'string' },
+  host: { type: 'string' },
+  port: { type: 'string' },
   help: { type: 'boolean', short: 'h', default: false },
 };
 
@@ -49,11 +53,12 @@ Usage:
 
 Commands:
   prompt           Generate a general prompt pack
-  ask              Generate the prompt and call an OpenAI-compatible chat API
+  ask              Generate the prompt and call a model API
   paper-prompt     Generate a dedicated paper-reading prompt pack
   paper-ask        Call the paper-reading mode directly
   alphaxiv-prompt  Generate a prompt for an alphaXiv follow-up diagnosis flow
   alphaxiv-ask     Call the alphaXiv mode directly
+  web              Launch the local Truth Tutor Web UI
 
 Common options:
   --input <file.json>
@@ -84,16 +89,26 @@ Common options:
   --json
 
 Model options for ask:
+  --api-style <openai|anthropic>
   --api-base-url <url>
   --api-key <key>
   --model <name>
   --temperature <number>
   --timeout <ms>
 
+Default local behavior:
+  If no API options are provided, Truth Tutor will first try local env vars.
+  If none are set, it will automatically fall back to the local OpenClaw MiniMax profile when available.
+
+Web options:
+  --host <host>     Default: 127.0.0.1
+  --port <port>     Default: 3474
+
 Examples:
   truth-tutor paper-prompt --input ./examples/paper-reading.json
   truth-tutor alphaxiv-prompt --input ./examples/alphaxiv-session.json
   truth-tutor ask --mode paper-reading --paper-title "Attention Is All You Need" --confusion "I still don't get why multi-head attention helps"
+  truth-tutor web --port 3474
 `;
 
 const COMMAND_MODES = {
@@ -103,6 +118,7 @@ const COMMAND_MODES = {
   'paper-ask': 'paper-reading',
   'alphaxiv-prompt': 'alphaxiv',
   'alphaxiv-ask': 'alphaxiv',
+  web: null,
 };
 
 export async function run(argv = process.argv.slice(2)) {
@@ -127,6 +143,18 @@ export async function run(argv = process.argv.slice(2)) {
   if (parsed.values.help) {
     console.log(HELP);
     return;
+  }
+
+  if (command === 'web') {
+    const { url } = await startWebServer({
+      host: parsed.values.host || '127.0.0.1',
+      port: parsed.values.port ? Number(parsed.values.port) : 3474,
+      openBrowser: true,
+    });
+
+    console.log(`Truth Tutor Web is running at ${url}`);
+    console.log('Press Ctrl+C to stop.');
+    return await new Promise(() => {});
   }
 
   const forcedMode = COMMAND_MODES[command];
@@ -158,7 +186,8 @@ export async function run(argv = process.argv.slice(2)) {
     return;
   }
 
-  const result = await askOpenAICompatible({
+  const result = await askModel({
+    apiStyle: parsed.values['api-style'],
     apiBaseUrl: parsed.values['api-base-url'],
     apiKey: parsed.values['api-key'],
     model: parsed.values.model,
