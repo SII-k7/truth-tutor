@@ -207,12 +207,12 @@ function renderSearchResults() {
     });
   });
 
-  paperResults.classList.remove('hidden');
+  paperResults.style.display = 'block';
 }
 
 function hideSearchResults() {
   paperResults.innerHTML = '';
-  paperResults.classList.add('hidden');
+  paperResults.style.display = 'none';
 }
 
 function loadPaper(item) {

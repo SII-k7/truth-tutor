@@ -13,31 +13,27 @@
           <div id="ai-mascot" class="ai-mascot">
             <div class="mascot-scene">
               <div class="mascot-head-3d">
-                <!-- Abstract geometric face - minimal and premium -->
-                <div class="head-base">
-                  <div class="face-abstract">
-                    <div class="eye-region">
-                      <div class="eye-line left"></div>
-                      <div class="eye-line right"></div>
-                    </div>
-                    <div class="glasses-abstract">
-                      <div class="rim left"></div>
-                      <div class="rim-bridge"></div>
-                      <div class="rim right"></div>
-                    </div>
-                    <div class="nose-abstract"></div>
-                    <div class="mouth-line"></div>
-                  </div>
-                </div>
-                <!-- Deerstalker hat - distinctive Sherlock shape -->
-                <div class="hat-abstract">
-                  <div class="hat-crown"></div>
-                  <div class="hat-band-abstract"></div>
-                  <div class="hat-brim-front"></div>
-                  <div class="hat-brim-back"></div>
-                  <div class="hat-ear-left"></div>
-                  <div class="hat-ear-right"></div>
-                </div>
+                <!-- Simple wireframe face -->
+                <svg class="wireframe-face" viewBox="0 0 48 52" fill="none">
+                  <!-- Head outline -->
+                  <ellipse cx="24" cy="28" rx="18" ry="20" stroke="#2a2e3c" stroke-width="1.5" fill="none"/>
+                  <!-- Glasses -->
+                  <rect x="8" y="22" width="12" height="8" rx="2" stroke="#2a2e3c" stroke-width="1.5" fill="none"/>
+                  <rect x="28" y="22" width="12" height="8" rx="2" stroke="#2a2e3c" stroke-width="1.5" fill="none"/>
+                  <line x1="20" y1="26" x2="28" y2="26" stroke="#2a2e3c" stroke-width="1.5"/>
+                  <!-- Eyes dots -->
+                  <circle cx="14" cy="26" r="2" fill="#2a2e3c"/>
+                  <circle cx="34" cy="26" r="2" fill="#2a2e3c"/>
+                  <!-- Nose -->
+                  <line x1="24" y1="28" x2="24" y2="32" stroke="#2a2e3c" stroke-width="1.5"/>
+                  <!-- Mouth -->
+                  <path d="M18 38 Q24 42 30 38" stroke="#2a2e3c" stroke-width="1.5" fill="none"/>
+                  <!-- Hat - deerstalker -->
+                  <path d="M6 18 Q4 8 12 6 L24 4 L36 6 Q44 8 42 18" stroke="#2a2e3c" stroke-width="1.5" fill="none"/>
+                  <line x1="8" y1="14" x2="6" y2="20" stroke="#2a2e3c" stroke-width="1.5"/>
+                  <line x1="40" y1="14" x2="42" y2="20" stroke="#2a2e3c" stroke-width="1.5"/>
+                  <line x1="6" y1="18" x2="42" y2="18" stroke="#2a2e3c" stroke-width="1.5"/>
+                </svg>
               </div>
             </div>
             <div class="mascot-thinking" id="mascot-thinking">
@@ -52,7 +48,7 @@
         </div>
 
         <div class="topbar-search">
-          <input id="paper-search" class="topbar-search-input" placeholder="搜索 arXiv 论文标题…" />
+          <input id="paper-search" class="topbar-search-input" placeholder="搜索 arXiv 论文标题…" autocomplete="off" />
           <div id="paper-results" class="paper-results hidden"></div>
         </div>
 
@@ -110,8 +106,7 @@
               <button id="run-diagnosis" class="send-btn">Send</button>
             </div>
         </section>
-      </div>
-          </main>
+      </main>
 
       <div hidden>
         <input id="topic" />

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.5 - 2026-03-11
+
+### Added
+- Wireframe mascot with SVG line art (simple, clean)
+- Fuzzy search with dropdown results (auto-suggest as you type)
+- Bug fixes and UI polish
+
+---
+
 ## 0.3.1 - 2026-03-11
 
 ### Fixed
