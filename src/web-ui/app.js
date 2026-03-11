@@ -80,17 +80,18 @@ function bindMascotInteractions() {
     const dx = event.clientX - cx;
     const dy = event.clientY - cy;
 
-    const max = 2.2;
-    const nx = Math.max(-max, Math.min(max, dx / 120));
-    const ny = Math.max(-max, Math.min(max, dy / 120));
+    // Rotate entire head based on mouse position
+    const maxRot = 8;
+    const rx = Math.max(-maxRot, Math.min(maxRot, dy / 40));
+    const ry = Math.max(-maxRot, Math.min(maxRot, dx / 40));
 
-    mascot.querySelectorAll('.mascot-eye').forEach((eye) => {
-      eye.style.transform = `translate(${nx}px, ${ny}px)`;
-    });
+    const head = mascot.querySelector('.mascot-head');
+    if (head) {
+      head.style.transform = `rotateX(${-rx}deg) rotateY(${ry}deg)`;
+    }
   });
 
   mascot.addEventListener('click', () => {
-    // subtle premium feedback: tiny pulse + spark
     mascot.classList.add('clicked');
     setTimeout(() => mascot.classList.remove('clicked'), 300);
     spawnMascotSpark();
@@ -327,6 +328,9 @@ async function runDiagnosis() {
       content: response.result.content,
       options,
     });
+
+    // Clear input after successful send
+    elements.confusion.value = '';
 
     statusText.textContent = response.result.model;
   } catch (error) {

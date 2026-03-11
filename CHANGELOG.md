@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.1 - 2026-03-11
+
+### Fixed
+- Mascot redesign: 3D head with glasses, full head rotation tracking mouse
+- Text input clears after send
+- Text input height reduced, chat window expanded
+- Search box moved to top bar, removed default thumbnail
+
+---
+
 ## 0.3.0 - 2026-03-11
 
 ### Added

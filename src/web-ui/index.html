@@ -11,20 +11,27 @@
       <header class="topbar">
         <div class="brand-container">
           <div id="ai-mascot" class="ai-mascot">
-            <div class="mascot-body">
-              <div class="mascot-face">
-                <div class="mascot-eyes">
-                  <div class="mascot-eye left"></div>
-                  <div class="mascot-eye right"></div>
+            <div class="mascot-head">
+              <div class="head-3d">
+                <div class="mascot-face">
+                  <div class="mascot-glasses">
+                    <div class="glass left"></div>
+                    <div class="glass-bridge"></div>
+                    <div class="glass right"></div>
+                  </div>
+                  <div class="mascot-eyes">
+                    <div class="mascot-eye left"></div>
+                    <div class="mascot-eye right"></div>
+                  </div>
+                  <div class="mascot-nose"></div>
+                  <div class="mascot-mouth"></div>
                 </div>
-                <div class="mascot-nose"></div>
-                <div class="mascot-mouth"></div>
+                <div class="mascot-hat">
+                  <div class="hat-top"></div>
+                  <div class="hat-band"></div>
+                  <div class="hat-brim"></div>
+                </div>
               </div>
-              <div class="mascot-hat">
-                <div class="hat-band"></div>
-                <div class="hat-brim"></div>
-              </div>
-              <div class="mascot-pipe"></div>
             </div>
             <div class="mascot-thinking" id="mascot-thinking">
               <div class="thinking-bubble">
@@ -35,6 +42,11 @@
             </div>
           </div>
           <span class="brand">Truth Tutor</span>
+        </div>
+
+        <div class="topbar-search">
+          <input id="paper-search" class="topbar-search-input" placeholder="搜索 arXiv 论文标题…" />
+          <div id="paper-results" class="paper-results hidden"></div>
         </div>
 
         <div class="control-cluster">
@@ -72,15 +84,10 @@
 
       <main class="workspace">
         <section class="viewer-panel">
-          <div class="paper-search-shell">
-            <input id="paper-search" class="paper-search-input" placeholder="Search arXiv by paper title…" />
-            <div id="paper-results" class="paper-results hidden"></div>
-          </div>
-
           <div id="paper-caption" class="paper-caption">No paper loaded</div>
           <iframe id="pdf-frame" title="Paper PDF preview"></iframe>
           <div id="pdf-empty" class="empty-view visible">
-            <div class="empty-copy">输入论文标题搜索 arXiv，或者在右侧直接贴 arXiv / PDF 链接。</div>
+            <div class="empty-copy">搜索上方论文标题，或在右侧直接贴 arXiv / PDF 链接。</div>
           </div>
         </section>
 
@@ -90,7 +97,7 @@
           </div>
 
           <div class="composer">
-            <textarea id="confusion" rows="8" placeholder="直接说你哪里没懂。Enter 发送，Shift+Enter 换行。"></textarea>
+            <textarea id="confusion" rows="3" placeholder="直接说你哪里没懂。Enter 发送，Shift+Enter 换行。"></textarea>
             <div class="composer-bar">
               <span id="status-text" class="status-text"></span>
               <button id="run-diagnosis" class="send-btn">Send</button>
