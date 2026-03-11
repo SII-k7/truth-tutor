@@ -1,0 +1,11 @@
+{
+  "topic": "Probability for diffusion-model papers",
+  "materialType": "study-plan",
+  "confusion": "我读 diffusion 论文时总在噪声建模、likelihood、变分目标附近掉线。每次都觉得自己差一点点，但其实一直没补上。",
+  "currentUnderstanding": "我会基础微积分和一点线性代数，但概率论和随机变量的直觉很弱。",
+  "goals": "请直接判断我的基础缺口，并给我一个两周内能执行的补课顺序。",
+  "studyLevel": "beginner graduate",
+  "weeklyHours": 10,
+  "strictness": "strict",
+  "language": "Chinese"
+}

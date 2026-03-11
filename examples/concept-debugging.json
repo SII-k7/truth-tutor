@@ -1,0 +1,11 @@
+{
+  "topic": "Transformer attention",
+  "materialType": "concept",
+  "confusion": "我能复述 Q、K、V，但一旦问到为什么 attention 比固定卷积核更适合建模长距离依赖，我就讲不清了。",
+  "currentUnderstanding": "我知道矩阵乘法、softmax 和基础线性代数，但没有真正建立起 query-key 匹配的直觉。",
+  "goals": "别给我泛泛解释，直接指出我卡住的根因，并给我一个 3 天补洞方案。",
+  "studyLevel": "CS undergraduate",
+  "weeklyHours": 6,
+  "strictness": "direct",
+  "language": "Chinese"
+}

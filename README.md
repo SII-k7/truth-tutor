@@ -102,6 +102,31 @@ Truth Tutor works best when you provide:
 
 If context is incomplete, the prompt explicitly instructs the model to say what is missing instead of hallucinating a diagnosis.
 
+## More examples
+
+See the JSON examples in `examples/`:
+
+- `paper-reading.json`
+- `concept-debugging.json`
+- `study-planning.json`
+
+## Library usage
+
+```js
+import { buildPrompt } from 'truth-tutor';
+
+const result = buildPrompt({
+  topic: 'Attention',
+  confusion: 'I can repeat QKV but I cannot explain why attention works.',
+  currentUnderstanding: 'I know linear algebra.',
+  strictness: 'direct',
+  language: 'Chinese',
+});
+
+console.log(result.systemPrompt);
+console.log(result.userPrompt);
+```
+
 ## Strictness levels
 
 - **soft** — low sugar, still calm
