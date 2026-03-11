@@ -1,0 +1,12 @@
+{
+  "topic": "Diffusion models",
+  "materialTitle": "High-Resolution Image Synthesis with Latent Diffusion Models",
+  "materialType": "paper",
+  "confusion": "I can follow parts of the architecture section, but I still do not understand why operating in latent space helps and where the quality-vs-compression tradeoff really comes from.",
+  "currentUnderstanding": "I know basic CNNs, a little about VAEs, and some intuition about denoising, but my probability background is weak.",
+  "goals": "Figure out what I am missing and build a 7-day recovery plan so I can read modern generative-model papers without faking comprehension.",
+  "studyLevel": "upper-undergraduate / beginner graduate",
+  "weeklyHours": 8,
+  "strictness": "strict",
+  "language": "Chinese"
+}

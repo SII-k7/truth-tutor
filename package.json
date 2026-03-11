@@ -1,0 +1,27 @@
+{
+  "name": "truth-tutor",
+  "version": "0.1.0",
+  "description": "Prompt engine and CLI for brutally honest learning-gap diagnosis and recovery planning.",
+  "type": "module",
+  "bin": {
+    "truth-tutor": "./bin/truth-tutor.mjs"
+  },
+  "scripts": {
+    "test": "node --test",
+    "prompt": "node ./bin/truth-tutor.mjs prompt --help"
+  },
+  "keywords": [
+    "ai",
+    "learning",
+    "study",
+    "education",
+    "prompt-engineering",
+    "paper-reading",
+    "llm",
+    "coaching"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

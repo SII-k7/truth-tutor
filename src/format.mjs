@@ -1,0 +1,27 @@
+export function formatPromptAsMarkdown(result) {
+  return [
+    '# Truth Tutor Prompt Pack',
+    '',
+    `- Strictness: ${result.strictness.label}`,
+    `- Tone: ${result.strictness.tone}`,
+    '',
+    '## System Prompt',
+    '',
+    '```text',
+    result.systemPrompt,
+    '```',
+    '',
+    '## User Prompt',
+    '',
+    '```text',
+    result.userPrompt,
+    '```',
+    '',
+    '## Output Template',
+    '',
+    '```markdown',
+    result.outputTemplate,
+    '```',
+    '',
+  ].join('\n');
+}
