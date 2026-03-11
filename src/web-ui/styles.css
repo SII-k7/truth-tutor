@@ -56,57 +56,81 @@ button { cursor: pointer; border: none; background: none; }
 /* 3D Mascot */
 .ai-mascot {
   position: relative;
-  width: 52px;
-  height: 52px;
+  width: 60px;
+  height: 60px;
   cursor: pointer;
-  perspective: 400px;
+  perspective: 900px;
 }
 
 .mascot-scene {
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
+  perspective: 900px;
 }
 
 .mascot-head-3d {
   position: relative;
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   transform-style: preserve-3d;
-  transform: rotateY(0deg) rotateX(0deg);
-  transition: transform 0.1s ease-out;
+  transform: translateZ(8px) rotateY(0deg) rotateX(0deg);
+  transition: transform 0.08s ease-out;
+  filter: drop-shadow(0 10px 18px rgba(26,31,54,0.22));
 }
 
 /* Face */
 .head-face {
   position: absolute;
-  width: 40px;
-  height: 36px;
-  top: 10px;
-  left: 2px;
+  width: 46px;
+  height: 40px;
+  top: 12px;
+  left: 3px;
   transform-style: preserve-3d;
 }
 
 .face-skin {
   width: 100%;
   height: 100%;
-  background: linear-gradient(165deg, var(--skin) 0%, var(--skin-shadow) 100%);
-  border-radius: 50% 50% 45% 45%;
-  box-shadow: 
-    0 4px 12px rgba(0,0,0,0.15),
-    inset 0 -2px 6px rgba(0,0,0,0.08),
-    inset 0 2px 4px rgba(255,255,255,0.3);
+  background: radial-gradient(circle at 32% 28%, #fff6ea 0%, var(--skin) 26%, var(--skin-shadow) 76%, #d2bca8 100%);
+  border-radius: 48% 48% 46% 46% / 46% 46% 52% 52%;
+  box-shadow:
+    0 8px 18px rgba(0,0,0,0.16),
+    inset -4px -6px 10px rgba(0,0,0,0.1),
+    inset 5px 5px 8px rgba(255,255,255,0.36);
   position: relative;
-  transform: translateZ(2px);
+  transform: translateZ(10px);
+}
+
+.face-skin::before,
+.face-skin::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  width: 8px;
+  height: 18px;
+  background: linear-gradient(180deg, #ead3bf 0%, #cdb39b 100%);
+  border-radius: 10px;
+  opacity: 0.92;
+}
+
+.face-skin::before {
+  left: -3px;
+  transform: rotateY(-72deg) translateZ(1px);
+}
+
+.face-skin::after {
+  right: -3px;
+  transform: rotateY(72deg) translateZ(1px);
 }
 
 /* Glasses */
 .glasses-frame {
   position: absolute;
-  top: 10px;
-  left: 2px;
-  width: 36px;
-  height: 14px;
+  top: 11px;
+  left: 4px;
+  width: 38px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -115,10 +139,10 @@ button { cursor: pointer; border: none; background: none; }
 }
 
 .lens {
-  width: 14px;
-  height: 12px;
-  background: var(--glass);
-  border-radius: 3px;
+  width: 15px;
+  height: 13px;
+  background: linear-gradient(180deg, rgba(44,52,72,0.96) 0%, rgba(24,29,40,0.92) 100%);
+  border-radius: 4px;
   position: relative;
   box-shadow: 
     inset 0 1px 2px rgba(255,255,255,0.2),
@@ -146,8 +170,8 @@ button { cursor: pointer; border: none; background: none; }
 /* Eyes */
 .eyes-container {
   position: absolute;
-  top: 13px;
-  left: 6px;
+  top: 15px;
+  left: 8px;
   width: 28px;
   height: 8px;
   display: flex;
@@ -216,15 +240,15 @@ button { cursor: pointer; border: none; background: none; }
 .head-hat {
   position: absolute;
   top: -8px;
-  left: 0;
-  width: 44px;
-  height: 24px;
+  left: 2px;
+  width: 48px;
+  height: 28px;
   transform-style: preserve-3d;
 }
 
 .hat-base {
   position: absolute;
-  width: 22px;
+  width: 24px;
   height: 18px;
   top: 0;
   left: 50%;
@@ -248,7 +272,7 @@ button { cursor: pointer; border: none; background: none; }
 
 .hat-brim {
   position: absolute;
-  top: 19px;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%) translateZ(1px) rotateX(10deg);
   width: 34px;

@@ -24,6 +24,7 @@ const state = {
   messages: [],
   isBusy: false,
   searchResults: [],
+  lastSearchToken: 0,
 };
 
 const elements = Object.fromEntries(fields.map((id) => [id, document.getElementById(id)]));
@@ -56,10 +57,23 @@ function bindEvents() {
   elements.mode.addEventListener('change', handleModeChange);
   runButton.addEventListener('click', runDiagnosis);
   paperSearch.addEventListener('keydown', handleSearchKeydown);
-  paperSearch.addEventListener('input', () => {
-    if (!paperSearch.value.trim()) {
-      hideSearchResults();
+  paperSearch.addEventListener('focus', () => {
+    if (state.searchResults.length) {
+      paperResults.classList.remove('hidden');
     }
+  });
+  paperSearch.addEventListener('input', () => {
+    const query = paperSearch.value.trim();
+    if (!query) {
+      hideSearchResults();
+      state.searchResults = [];
+      return;
+    }
+
+    clearTimeout(paperSearch._debounce);
+    paperSearch._debounce = setTimeout(() => {
+      runPaperSearch({ auto: true });
+    }, 220);
   });
   document.addEventListener('click', (event) => {
     if (!paperResults.contains(event.target) && event.target !== paperSearch) {
@@ -80,15 +94,21 @@ function bindMascotInteractions() {
     const dx = event.clientX - cx;
     const dy = event.clientY - cy;
 
-    // Rotate entire head based on mouse position
-    const maxRot = 15;
-    const rx = Math.max(-maxRot, Math.min(maxRot, dy / 30));
-    const ry = Math.max(-maxRot, Math.min(maxRot, dx / 30));
+    // Rotate entire 3D head based on mouse position
+    const maxRot = 20;
+    const rx = Math.max(-maxRot, Math.min(maxRot, dy / 24));
+    const ry = Math.max(-maxRot, Math.min(maxRot, dx / 24));
 
     const head = mascot.querySelector('.mascot-head-3d');
     if (head) {
-      head.style.transform = `rotateX(${-rx}deg) rotateY(${ry}deg)`;
+      head.style.transform = `translateZ(8px) rotateX(${-rx}deg) rotateY(${ry}deg)`;
     }
+
+    mascot.querySelectorAll('.pupil').forEach((pupil) => {
+      const px = Math.max(-1.5, Math.min(1.5, dx / 180));
+      const py = Math.max(-1.5, Math.min(1.5, dy / 180));
+      pupil.style.transform = `translate(calc(-50% + ${px}px), calc(-50% + ${py}px))`;
+    });
   });
 
   mascot.addEventListener('click', () => {
@@ -135,22 +155,25 @@ function handleComposerKeydown(event) {
 async function handleSearchKeydown(event) {
   if (event.key !== 'Enter') return;
   event.preventDefault();
-  await runPaperSearch();
+  await runPaperSearch({ auto: false });
 }
 
-async function runPaperSearch() {
+async function runPaperSearch({ auto = false } = {}) {
   const query = paperSearch.value.trim();
   if (!query) return;
 
+  const searchToken = ++state.lastSearchToken;
   statusText.textContent = 'searching arXiv…';
 
   try {
     const { items } = await fetchJson(`/api/arxiv-search?q=${encodeURIComponent(query)}`);
+    if (searchToken !== state.lastSearchToken) return;
+
     state.searchResults = items || [];
     renderSearchResults();
     statusText.textContent = items?.length ? `${items.length} result(s)` : 'no results';
 
-    if (items?.length === 1) {
+    if (!auto && items?.length === 1) {
       loadPaper(items[0]);
       hideSearchResults();
     }
