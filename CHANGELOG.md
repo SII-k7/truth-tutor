@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.0.3 - 2026-03-13
+
+### Added
+- Added responsive design to Web UI (mobile/tablet/desktop breakpoints)
+- Added accessibility improvements (focus states, reduced motion, print styles)
+- Added .npmignore for better npm publishing
+- Added .env.example for environment configuration
+- Added examples/README.md with usage instructions
+
+### Fixed
+- Enhanced drill templates with 2 new types (analogy, counterfactual)
+
+---
+
+## 1.0.2 - 2026-03-13
+
+### Added
+- Added VERSION export to index.mjs
+- Added responsive design to Web UI
+
+---
+
+## 1.0.1 - 2026-03-13
+
+### Fixed
+- Input field clearing bug fix
+
+---
+
 ## 1.0.0 - 2026-03-13
 
 ### Added

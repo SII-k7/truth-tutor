@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+out/
+
+# Test coverage
+coverage/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+CONTRIBUTING.md
+DEVELOPMENT.md
+FAQ.md
+CODE_OF_CONDUCT.md
+SECURITY.md
+CHANGELOG.md
+docs/
+
+# Examples (optional - can be included)
+examples/
+
+# Scripts
+scripts/
+
+# Temporary
+.tmp/
+.tmp-ui/
+*.tmp
+
+# Old tgz files
+*.tgz

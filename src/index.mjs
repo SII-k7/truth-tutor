@@ -16,4 +16,4 @@ export { startWebServer } from './web-server.mjs';
  * Truth Tutor version
  * @type {string}
  */
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.3';

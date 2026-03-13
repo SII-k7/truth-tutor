@@ -3,6 +3,9 @@
 <a href="https://github.com/SII-k7/truth-tutor/releases"><img src="https://img.shields.io/github/v/release/SII-k7/truth-tutor?include_prereleases&label=version&style=flat-square" alt="Version"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="License: MIT"></a>
 <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-%3E=20-blue.svg?style=flat-square" alt="Node.js >= 20"></a>
+<a href="https://github.com/SII-k7/truth-tutor/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/SII-k7/truth-tutor/test.yml?label=test&style=flat-square" alt="Test"></a>
+<a href="https://npmjs.com/package/truth-tutor"><img src="https://img.shields.io/npm/dt/truth-tutor?label=npm&style=flat-square" alt="npm"></a>
+<a href="https://discord.com/invite/clawd"><img src="https://img.shields.io/discord/125782525318848512?label=discord&style=flat-square" alt="Discord"></a>
 
 > A diagnosis-first learning coach for people who do not need comfort — especially graduate students and researchers stuck on papers.
 
@@ -407,6 +410,23 @@ Please note that this project is released with a [Contributor Code of Conduct](C
 - `docs/alphaxiv-integration.md`
 - `FAQ.md`
 - `DEVELOPMENT.md`
+
+## Docker
+
+Truth Tutor is also available as a Docker image:
+
+```bash
+# Build the image
+docker build -t truth-tutor .
+
+# Run the web UI
+docker run -p 3474:3474 truth-tutor
+
+# Or with environment variables
+docker run -p 3474:3474 \
+  -e OPENAI_API_KEY=your_key \
+  truth-tutor
+```
 
 ## License
 
