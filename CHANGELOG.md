@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0-beta - 2026-03-13
+## 1.0.6 - 2026-03-13
 
 ### Added - Core Differentiation Features
 - **Knowledge Gap Analyzer** (`gap-analyzer.mjs`)
@@ -24,9 +24,16 @@
   - Dashboard data generation
   - Learning style detection
 
+- **Dashboard API & UI** (`dashboard.html`)
+  - Comprehensive learning data visualization
+  - Gap analysis display
+  - Learning path visualization
+  - Drill effectiveness metrics
+  - Personalized recommendations
+
 ### Changed
-- Version bump to 2.0.0-beta (major release with new core features)
 - All new features are backward compatible
+- Enhanced web-server.mjs with new API endpoints
 
 ---
 

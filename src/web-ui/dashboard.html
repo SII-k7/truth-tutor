@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Truth Tutor - Dashboard</title>
+  <style>
+    :root {
+      --bg: #f0f2f8;
+      --surface: #ffffff;
+      --border: #e2e6ef;
+      --text: #1a1f36;
+      --text-soft: #5a6275;
+      --accent: #6366f1;
+      --accent-light: #eef0ff;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+    
+    .dashboard { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .header h1 { margin: 0; font-size: 28px; }
+    .back-link { color: var(--accent); text-decoration: none; }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .card { background: var(--surface); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .card h2 { margin: 0 0 16px 0; font-size: 18px; color: var(--text-soft); }
+    
+    .stat { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .stat:last-child { border-bottom: none; }
+    .stat-label { color: var(--text-soft); }
+    .stat-value { font-weight: 600; font-size: 18px; }
+    .stat-value.success { color: var(--success); }
+    .stat-value.warning { color: var(--warning); }
+    
+    .pattern { display: inline-block; background: var(--accent-light); color: var(--accent); padding: 4px 12px; border-radius: 16px; margin: 4px; font-size: 13px; }
+    
+    .gap-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .gap-item:last-child { border-bottom: none; }
+    .gap-name { flex: 1; }
+    .gap-count { background: var(--accent); color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+    
+    .phase { padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 8px; }
+    .phase-name { font-weight: 600; }
+    .phase-duration { color: var(--text-soft); font-size: 13px; }
+    .phase-focus { font-size: 13px; color: var(--text-soft); margin-top: 4px; }
+    
+    .recommendation { padding: 12px; background: var(--accent-light); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--accent); }
+    
+    .loading { text-align: center; padding: 40px; color: var(--text-soft); }
+    .empty { text-align: center; padding: 40px; color: var(--text-soft); }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="header">
+      <h1>📊 Learning Dashboard</h1>
+      <a href="/" class="back-link">← Back to Chat</a>
+    </div>
+    
+    <div id="content">
+      <div class="loading">Loading your learning data...</div>
+    </div>
+  </div>
+
+  <script type="module">
+    async function loadDashboard() {
+      try {
+        const response = await fetch('/api/dashboard');
+        const data = await response.json();
+        
+        const html = `
+          <div class="grid">
+            <!-- Overview Stats -->
+            <div class="card">
+              <h2>📈 Overview</h2>
+              <div class="stat">
+                <span class="stat-label">Total Sessions</span>
+                <span class="stat-value">${data.overview?.totalSessions || 0}</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Knowledge Gaps</span>
+                <span class="stat-value">${data.overview?.totalGaps || 0}</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Improvement Rate</span>
+                <span class="stat-value ${data.overview?.improvementRate > 0 ? 'success' : ''}">${data.overview?.improvementRate ? Math.round(data.overview.improvementRate) + '%' : 'N/A'}</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Learning Style</span>
+                <span class="stat-value">${formatLearningStyle(data.overview?.learningStyle)}</span>
+              </div>
+            </div>
+            
+            <!-- Patterns -->
+            <div class="card">
+              <h2>🎯 Identified Patterns</h2>
+              ${data.patterns && data.patterns.length > 0 
+                ? data.patterns.map(p => `<span class="pattern">${formatPattern(p)}</span>`).join('')
+                : '<div class="empty">No patterns identified yet. Keep learning!</div>'}
+            </div>
+            
+            <!-- Top Gaps -->
+            <div class="card">
+              <h2>📚 Top Knowledge Gaps</h2>
+              ${data.topGaps && data.topGaps.length > 0
+                ? data.topGaps.map(g => `
+                    <div class="gap-item">
+                      <span class="gap-name">${g.gap}</span>
+                      <span class="gap-count">×${g.count}</span>
+                    </div>
+                  `).join('')
+                : '<div class="empty">No gaps recorded yet. Start learning!</div>'}
+            </div>
+            
+            <!-- Learning Path -->
+            <div class="card">
+              <h2>🗺️ Learning Path</h2>
+              ${data.learningPath && data.learningPath.phases && data.learningPath.phases.length > 0
+                ? data.learningPath.phases.slice(0, 4).map(p => `
+                    <div class="phase">
+                      <div class="phase-name">Phase ${p.phase}: ${p.name}</div>
+                      <div class="phase-duration">${p.duration}</div>
+                      <div class="phase-focus">${p.focus}</div>
+                    </div>
+                  `).join('')
+                : '<div class="empty">Complete some sessions to get your learning path!</div>'}
+              ${data.learningPath?.estimatedDuration 
+                ? `<div style="margin-top:12px;font-weight:600;">Estimated: ${data.learningPath.estimatedDuration} weeks</div>`
+                : ''}
+            </div>
+            
+            <!-- Recommendations -->
+            <div class="card">
+              <h2>💡 Recommendations</h2>
+              ${data.recommendations && data.recommendations.length > 0
+                ? data.recommendations.slice(0, 4).map(r => `
+                    <div class="recommendation">${r}</div>
+                  `).join('')
+                : '<div class="empty">Complete more sessions to get personalized recommendations!</div>'}
+            </div>
+            
+            <!-- Drill Effectiveness -->
+            <div class="card">
+              <h2>✅ Drill Effectiveness</h2>
+              <div class="stat">
+                <span class="stat-label">Overall Completion</span>
+                <span class="stat-value">${data.drillEffectiveness?.overallCompletionRate ? Math.round(data.drillEffectiveness.overallCompletionRate * 100) + '%' : 'N/A'}</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Average Improvement</span>
+                <span class="stat-value ${data.drillEffectiveness?.averageImprovement > 0 ? 'success' : ''}">${data.drillEffectiveness?.averageImprovement ? Math.round(data.drillEffectiveness.averageImprovement * 100) + '%' : 'N/A'}</span>
+              </div>
+              ${data.drillEffectiveness?.mostEffectiveDrills && data.drillEffectiveness.mostEffectiveDrills.length > 0
+                ? `<div style="margin-top:12px;"><strong>Most Effective:</strong><br>${data.drillEffectiveness.mostEffectiveDrills.map(d => d.type).join(', ')}</div>`
+                : ''}
+            </div>
+          </div>
+        `;
+        
+        document.getElementById('content').innerHTML = html;
+      } catch (error) {
+        document.getElementById('content').innerHTML = `<div class="empty">Error loading dashboard: ${error.message}</div>`;
+      }
+    }
+    
+    function formatLearningStyle(style) {
+      const styles = {
+        'visual-conceptual': '👁️ Visual-Conceptual',
+        'hands-on-practice': '👐 Hands-On Practice',
+        'bottom-up-learner': '📶 Bottom-Up Learner',
+        'theory-first': '📖 Theory-First',
+        'compartmentalized-learner': '📦 Compartmentalized',
+        'balanced-learner': '⚖️ Balanced',
+      };
+      return styles[style] || style || 'Unknown';
+    }
+    
+    function formatPattern(pattern) {
+      const patterns = {
+        'conceptual-weakness': 'Conceptual Weakness',
+        'procedural-weakness': 'Procedural Weakness',
+        'foundation-gaps': 'Foundation Gaps',
+        'application-difficulty': 'Application Difficulty',
+        'integration-challenges': 'Integration Challenges',
+        'recurring-blocker': 'Recurring Blocker',
+      };
+      return patterns[pattern] || pattern;
+    }
+    
+    loadDashboard();
+  </script>
+</body>
+</html>

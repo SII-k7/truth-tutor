@@ -22,4 +22,4 @@ export { loadLearningProfile, saveLearningProfile, summarizeLearningProfile, get
  * Truth Tutor version
  * @type {string}
  */
-export const VERSION = '2.0.0-beta';
+export const VERSION = '1.0.6';

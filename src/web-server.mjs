@@ -8,8 +8,10 @@ import { askModel } from './model-client.mjs';
 import { normalizeMode } from './modes.mjs';
 import { searchArxiv, enrichInputWithPaperContext } from './paper-context.mjs';
 import { resolveApiConfig } from './provider-config.mjs';
-import { loadLearningProfile, saveLearningProfile, summarizeLearningProfile } from './learning-profile.mjs';
+import { loadLearningProfile, saveLearningProfile, summarizeLearningProfile, getDashboardData } from './learning-profile.mjs';
 import { loadDrillState, saveDrillState } from './drill-tracker.mjs';
+import { generateLearningPath, calculatePathProgress } from './learning-path-recommender.mjs';
+import { loadAdaptiveDrillState, analyzeDrillEffectiveness } from './adaptive-drills.mjs';
 
 const PUBLIC_DIR = new URL('./web-ui/', import.meta.url);
 const EXAMPLES_DIR = new URL('../examples/', import.meta.url);
@@ -219,9 +221,59 @@ export async function startWebServer({ host = '127.0.0.1', port = 3474, openBrow
             gapFrequency: profile.gapFrequency || {},
             recentTopics: profile.recentTopics,
             sessions: profile.sessions,
+            gapAnalysis: profile.gapAnalysis || null,
+            progressMetrics: profile.progressMetrics || null,
           },
           paperEvidenceIndex: input.paperEvidenceIndex || {},
         });
+
+      // NEW: Dashboard API - Get comprehensive learning data
+      if (req.method === 'GET' && url.pathname === '/api/dashboard') {
+        const profile = await loadLearningProfile('default');
+        const dashboardData = getDashboardData(profile);
+        const drillState = await loadAdaptiveDrillState();
+        const drillEffectiveness = analyzeDrillEffectiveness(drillState);
+        const learningPath = generateLearningPath(profile.gapAnalysis || {}, profile);
+        const pathProgress = calculatePathProgress(learningPath, profile);
+        
+        return sendJson(res, 200, {
+          overview: dashboardData.overview,
+          gapAnalysis: dashboardData.gapCategories,
+          topGaps: dashboardData.topGaps,
+          patterns: dashboardData.patterns,
+          recommendations: dashboardData.recommendations,
+          drillEffectiveness,
+          learningPath: {
+            phases: learningPath.phases,
+            resources: learningPath.resources,
+            priority: learningPath.priority,
+            estimatedDuration: learningPath.estimatedDuration,
+          },
+          pathProgress,
+        });
+      }
+
+      // NEW: Learning Path API
+      if (req.method === 'GET' && url.pathname === '/api/learning-path') {
+        const profile = await loadLearningProfile('default');
+        const learningPath = generateLearningPath(profile.gapAnalysis || {}, profile);
+        const pathProgress = calculatePathProgress(learningPath, profile);
+        return sendJson(res, 200, { learningPath, pathProgress });
+      }
+
+      // NEW: Gap Analysis API
+      if (req.method === 'GET' && url.pathname === '/api/gap-analysis') {
+        const profile = await loadLearningProfile('default');
+        const dashboardData = getDashboardData(profile);
+        return sendJson(res, 200, dashboardData);
+      }
+
+      // NEW: Drill Stats API
+      if (req.method === 'GET' && url.pathname === '/api/drill-stats') {
+        const drillState = await loadAdaptiveDrillState();
+        const effectiveness = analyzeDrillEffectiveness(drillState);
+        return sendJson(res, 200, { drillState, effectiveness });
+      }
       }
 
       if (req.method === 'GET') {
