@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.4 - 2026-03-13
+
+### Added
+- Added Dockerfile for containerized deployment
+- Added .dockerignore for cleaner Docker builds
+- Added more badges to README (test, npm, discord)
+- Added Docker section to README with usage examples
+- Updated CHANGELOG with complete version history
+- Fixed version numbers to be consistent
+
+---
+
 ## 1.0.3 - 2026-03-13
 
 ### Added
