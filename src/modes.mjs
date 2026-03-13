@@ -1,3 +1,8 @@
+/**
+ * Truth Tutor operating modes
+ * @readonly
+ * @enum {string}
+ */
 export const MODES = {
   GENERAL: 'general',
   PAPER_READING: 'paper-reading',
@@ -19,6 +24,12 @@ const ALIASES = {
   'alpha-xiv': MODES.ALPHAXIV,
 };
 
+/**
+ * Normalize the operating mode from various input formats
+ * @param {string|undefined} inputMode - The mode input from user
+ * @param {string|undefined} source - The source input (e.g., 'alphaxiv')
+ * @returns {string} The normalized mode value
+ */
 export function normalizeMode(inputMode, source) {
   const sourceKey = source ? String(source).trim().toLowerCase() : '';
   const modeKey = inputMode ? String(inputMode).trim().toLowerCase() : '';

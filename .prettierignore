@@ -1,0 +1,7 @@
+node_modules/
+dist/
+coverage/
+.git/
+.tmp/
+*.tgz
+package-lock.json

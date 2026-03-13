@@ -11,6 +11,9 @@
   },
   "scripts": {
     "test": "node --test",
+    "lint": "eslint src/",
+    "format": "prettier --write src/",
+    "format:check": "prettier --check src/",
     "prompt": "node ./bin/truth-tutor.mjs prompt --help"
   },
   "keywords": [

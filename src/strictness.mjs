@@ -1,3 +1,8 @@
+/**
+ * Strictness presets for Truth Tutor
+ * @readonly
+ * @enum {Object}
+ */
 export const STRICTNESS_PRESETS = {
   soft: {
     id: 'soft',
