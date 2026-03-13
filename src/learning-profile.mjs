@@ -2,10 +2,16 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { analyzeGapPatterns, calculateProgressMetrics, generateProfileInsights } from './gap-analyzer.mjs';
 
 const DATA_DIR = fileURLToPath(new URL('../data/', import.meta.url));
 const PROFILE_DIR = join(DATA_DIR, 'profiles');
 
+/**
+ * Load learning profile with enhanced analysis
+ * @param {string} profileKey - Profile identifier
+ * @returns {Promise<Object>} Enhanced learning profile
+ */
 export async function loadLearningProfile(profileKey = 'default') {
   const safeKey = sanitizeKey(profileKey);
   const path = profilePath(safeKey);
@@ -13,7 +19,7 @@ export async function loadLearningProfile(profileKey = 'default') {
   try {
     const raw = await readFile(path, 'utf8');
     const parsed = JSON.parse(raw);
-    return {
+    const profile = {
       profileKey: safeKey,
       recurringGaps: Array.isArray(parsed.recurringGaps) ? parsed.recurringGaps.slice(0, 8) : [],
       gapFrequency: parsed.gapFrequency || {},
@@ -21,12 +27,25 @@ export async function loadLearningProfile(profileKey = 'default') {
       sessions: Number(parsed.sessions || 0),
       updatedAt: parsed.updatedAt || null,
     };
+    
+    // Add enhanced analysis
+    profile.gapAnalysis = analyzeGapPatterns(profile);
+    profile.progressMetrics = calculateProgressMetrics(profile, null);
+    
+    return profile;
   } catch (error) {
     if (error?.code !== 'ENOENT') throw error;
-    return { profileKey: safeKey, recurringGaps: [], gapFrequency: {}, recentTopics: [], sessions: 0, updatedAt: null };
+    return createEmptyProfile(safeKey);
   }
 }
 
+/**
+ * Save learning profile with enhanced analysis
+ * @param {string} profileKey - Profile identifier
+ * @param {Object} input - User input
+ * @param {string} resultText - AI response text
+ * @returns {Promise<Object>} Updated profile
+ */
 export async function saveLearningProfile(profileKey = 'default', input = {}, resultText = '') {
   const current = await loadLearningProfile(profileKey);
   const extractedGaps = extractRecurringGaps(resultText, input);
@@ -46,32 +65,91 @@ export async function saveLearningProfile(profileKey = 'default', input = {}, re
     updatedAt: new Date().toISOString(),
   };
 
+  // Add enhanced analysis
+  next.gapAnalysis = analyzeGapPatterns(next);
+  next.progressMetrics = calculateProgressMetrics(next, current);
+
   await mkdir(dirname(profilePath(current.profileKey)), { recursive: true });
   await writeFile(profilePath(current.profileKey), `${JSON.stringify(next, null, 2)}\n`, 'utf8');
   return next;
 }
 
-export function summarizeLearningProfile(profile) {
-  if (!profile || (!profile.recurringGaps?.length && !profile.recentTopics?.length)) {
-    return '';
-  }
+/**
+ * Create an empty profile with analysis
+ * @param {string} profileKey - Profile identifier
+ * @returns {Object} Empty profile
+ */
+function createEmptyProfile(profileKey) {
+  const profile = {
+    profileKey,
+    recurringGaps: [],
+    gapFrequency: {},
+    recentTopics: [],
+    sessions: 0,
+    updatedAt: null,
+  };
+  profile.gapAnalysis = analyzeGapPatterns(profile);
+  profile.progressMetrics = calculateProgressMetrics(profile, null);
+  return profile;
+}
 
+/**
+ * Generate profile insights summary
+ * @param {Object} profile - Learning profile
+ * @returns {string} Formatted insights
+ */
+export function summarizeLearningProfile(profile) {
+  if (!profile) return '';
+  
+  const analysis = profile.gapAnalysis || analyzeGapPatterns(profile);
+  const metrics = profile.progressMetrics || calculateProgressMetrics(profile, null);
+  
   const lines = [];
-  if (profile.recurringGaps?.length) {
-    // Sort by frequency and show top 3
-    const sorted = profile.recurringGaps
-      .map(gap => ({ gap, count: profile.gapFrequency?.[gap] || 1 }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 3);
-    lines.push(`Top recurring gaps: ${sorted.map(x => `${x.gap} (×${x.count})`).join('; ')}`);
+  
+  if (analysis.topGaps?.length) {
+    lines.push(`🎯 Top gaps: ${analysis.topGaps.slice(0, 3).map(x => x.gap).join('; ')}`);
   }
-  if (profile.recentTopics?.length) {
-    lines.push(`Recent topics/papers: ${profile.recentTopics.join('; ')}`);
+  
+  if (analysis.learningStyle && analysis.learningStyle !== 'unknown') {
+    lines.push(`🧠 Learning style: ${formatLearningStyle(analysis.learningStyle)}`);
   }
-  if (profile.sessions) {
-    lines.push(`Prior sessions stored: ${profile.sessions}`);
+  
+  if (analysis.recommendations?.length) {
+    lines.push(`💡 Top recommendation: ${analysis.recommendations[0]}`);
   }
+  
+  if (metrics.sessionCount) {
+    lines.push(`📊 Sessions: ${metrics.sessionCount}`);
+    if (metrics.improvementRate > 0) {
+      lines.push(`📈 Improvement rate: +${Math.round(metrics.improvementRate)}%`);
+    }
+  }
+  
   return lines.join('\n');
+}
+
+/**
+ * Get detailed insights for dashboard
+ * @param {Object} profile - Learning profile
+ * @returns {Object} Dashboard data
+ */
+export function getDashboardData(profile) {
+  const analysis = profile?.gapAnalysis || analyzeGapPatterns(profile || {});
+  const metrics = profile?.progressMetrics || calculateProgressMetrics(profile || {}, null);
+  
+  return {
+    overview: {
+      totalSessions: profile?.sessions || 0,
+      totalGaps: Object.keys(profile?.gapFrequency || {}).length,
+      improvementRate: metrics.improvementRate || 0,
+      learningStyle: analysis.learningStyle || 'unknown',
+    },
+    gapCategories: analysis.gapCategories || {},
+    topGaps: analysis.topGaps || [],
+    patterns: analysis.patterns || [],
+    recommendations: analysis.recommendations || [],
+    recentTopics: profile?.recentTopics || [],
+  };
 }
 
 function profilePath(profileKey) {

@@ -1,6 +1,36 @@
 # Changelog
 
-## 1.0.4 - 2026-03-13
+## 2.0.0-beta - 2026-03-13
+
+### Added - Core Differentiation Features
+- **Knowledge Gap Analyzer** (`gap-analyzer.mjs`)
+  - Pattern recognition for learning gaps
+  - Learning style detection (visual-conceptual, hands-on-practice, bottom-up-learner, etc.)
+  - Automatic recommendations generation
+  
+- **Adaptive Drill System** (`adaptive-drills.mjs`)
+  - Self-adjusting difficulty based on completion rate
+  - Drill effectiveness tracking
+  - Personalized drill guidance based on learning style
+  
+- **Learning Path Recommender** (`learning-path-recommender.mjs`)
+  - Personalized learning path generation
+  - Resource recommendations
+  - Progress tracking and estimation
+  
+- **Enhanced Learning Profile**
+  - Integrated gap analysis
+  - Progress metrics calculation
+  - Dashboard data generation
+  - Learning style detection
+
+### Changed
+- Version bump to 2.0.0-beta (major release with new core features)
+- All new features are backward compatible
+
+---
+
+## 1.0.5 - 2026-03-13
 
 ### Added
 - Added Dockerfile for containerized deployment
