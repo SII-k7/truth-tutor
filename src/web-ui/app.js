@@ -25,6 +25,9 @@ const state = {
   isBusy: false,
   searchResults: [],
   lastSearchToken: 0,
+  drills: [],
+  profile: null,
+  paperEvidenceIndex: {},
 };
 
 const elements = Object.fromEntries(fields.map((id) => [id, document.getElementById(id)]));
@@ -49,6 +52,31 @@ async function init() {
   statusText.textContent = `${info.api.model || 'model'} · ready`;
   seedConversation();
   updateViewerFromComposer();
+  
+  // Load learning profile and drills on startup
+  loadProfile();
+  loadDrills();
+}
+
+async function loadProfile() {
+  try {
+    const data = await fetchJson('/api/profile');
+    state.profile = data;
+    if (data.recurringGaps?.length) {
+      console.log('Learning profile loaded:', data.recurringGaps);
+    }
+  } catch (e) {
+    console.log('Profile not available');
+  }
+}
+
+async function loadDrills() {
+  try {
+    const data = await fetchJson('/api/drills');
+    state.drills = data.items || [];
+  } catch (e) {
+    state.drills = [];
+  }
 }
 
 function bindEvents() {
@@ -59,7 +87,7 @@ function bindEvents() {
   paperSearch.addEventListener('keydown', handleSearchKeydown);
   paperSearch.addEventListener('focus', () => {
     if (state.searchResults.length) {
-      paperResults.classList.remove('hidden');
+      paperResults.style.display = 'block';
     }
   });
   paperSearch.addEventListener('input', () => {
@@ -70,10 +98,11 @@ function bindEvents() {
       return;
     }
 
+    // Immediate search with minimal debounce (80ms for responsive feel)
     clearTimeout(paperSearch._debounce);
     paperSearch._debounce = setTimeout(() => {
       runPaperSearch({ auto: true });
-    }, 220);
+    }, 80);
   });
   document.addEventListener('click', (event) => {
     if (!paperResults.contains(event.target) && event.target !== paperSearch) {
@@ -324,6 +353,66 @@ function withPdfFragment(url) {
   return url.includes('#') ? url : `${url}#view=FitH`;
 }
 
+function parseDrills(content) {
+  const drills = [];
+  const lines = content.split('\n');
+  let inDrillSection = false;
+  let currentDrill = null;
+  
+  const sectionMarkers = [
+    'verification drills', 'practice drills', 'drills', 
+    '验证', '练习', 'drill'
+  ];
+  
+  for (const line of lines) {
+    const trimmed = line.trim().toLowerCase();
+    
+    // Detect drill section start
+    if (!inDrillSection && sectionMarkers.some(m => trimmed.includes(m))) {
+      inDrillSection = true;
+      continue;
+    }
+    
+    // Stop at next major section
+    if (inDrillSection && /^#{1,2}\s+[^d]/.test(line) && !sectionMarkers.some(m => line.toLowerCase().includes(m))) {
+      break;
+    }
+    
+    if (!inDrillSection) continue;
+    
+    // Parse drill items - look for bullet points or numbered items
+    const bulletMatch = line.match(/^[-*•]\s*(.+)$/);
+    const numMatch = line.match(/^\d+[.)]\s*(.+)$/);
+    
+    if (bulletMatch || numMatch) {
+      const text = (bulletMatch?.[1] || numMatch?.[1] || '').trim();
+      if (text.length > 5 && text.length < 200) {
+        // Extract task (everything before Pass/Fail keywords)
+        const taskMatch = text.match(/^(.+?)(?:\s+(pass|fail|通过|完成)|$)/i);
+        const task = taskMatch ? taskMatch[1].trim() : text;
+        
+        drills.push({
+          id: crypto.randomUUID(),
+          task: task,
+          completed: false,
+          evidence: extractEvidenceFromText(text),
+        });
+      }
+    }
+  }
+  
+  return drills.slice(0, 5); // Max 5 drills
+}
+
+function extractEvidenceFromText(text) {
+  // Look for paragraph references like [P12], P5, etc.
+  const paraMatch = text.match(/\[?P(\d+)\]?/i) || text.match(/paragraph\s*(\d+)/i);
+  if (paraMatch) {
+    return { paragraph: `P${paraMatch[1]}` };
+  }
+  return null;
+}
+
 async function runDiagnosis() {
   try {
     const raw = elements.confusion.value.trim();
@@ -334,6 +423,9 @@ async function runDiagnosis() {
 
     const input = buildInputPayload(raw);
     const preview = raw.length > 220 ? `${raw.slice(0, 220)}…` : raw;
+
+    // Clear input IMMEDIATELY after capturing the value - before any async operations
+    elements.confusion.value = '';
 
     pushMessage({ role: 'user', content: preview, compact: true });
     const loadingId = pushMessage({ role: 'assistant', content: '我在看。', loading: true });
@@ -346,14 +438,30 @@ async function runDiagnosis() {
     });
 
     const options = parseInteractiveOptions(response.result.content);
+    const drills = parseDrills(response.result.content);
+    
+    // Save drills to state and backend
+    if (drills.length) {
+      state.drills = [...state.drills, ...drills.map(d => ({ ...d, completed: false }))];
+      await postJson('/api/drills', { items: state.drills });
+    }
+    
+    // Update profile from response
+    if (response.profile) {
+      state.profile = response.profile;
+    }
+
+    // Store paper evidence index for auto-quote in evidence cards
+    if (response.paperEvidenceIndex) {
+      state.paperEvidenceIndex = response.paperEvidenceIndex;
+    }
+
     replaceMessage(loadingId, {
       role: 'assistant',
       content: response.result.content,
       options,
+      drills,
     });
-
-    // Clear input after successful send
-    elements.confusion.value = '';
 
     statusText.textContent = response.result.model;
   } catch (error) {
@@ -465,6 +573,92 @@ function replaceMessage(id, nextMessage) {
   renderMessages();
 }
 
+
+function parseEvidence(text) {
+  const evidenceSection = text.match(/##\s*Evidence([\s\S]*?)(?:\n##\s|$)/i)?.[1] || '';
+  const items = [];
+  const lines = evidenceSection.split('\n');
+  let current = null;
+  
+  for (const line of lines) {
+    if (line.match(/^\s*-\s*Claim:/i)) {
+      if (current) items.push(current);
+      current = { claim: line.replace(/^\s*-\s*Claim:\s*/i, '').trim() };
+    } else if (current && line.match(/^\s*-\s*Section:/i)) {
+      current.section = line.replace(/^\s*-\s*Section:\s*/i, '').trim();
+    } else if (current && line.match(/^\s*-\s*Paragraph:/i)) {
+      current.paragraph = line.replace(/^\s*-\s*Paragraph:\s*/i, '').trim();
+    } else if (current && line.match(/^\s*-\s*Quote:/i)) {
+      current.quote = line.replace(/^\s*-\s*Quote:\s*/i, '').trim().replace(/^["']|["']$/g, '');
+    }
+  }
+  if (current) items.push(current);
+  return items;
+}
+
+function renderEvidence(items) {
+  if (!items?.length) return '';
+  
+  return `
+    <div class="evidence-cards">
+      <h4>📚 Evidence</h4>
+      ${items.map(item => {
+        // Try to auto-fill from paperEvidenceIndex if paragraph tag exists
+        let section = item.section;
+        let paragraph = item.paragraph;
+        let quote = item.quote;
+        
+        // Look for tags like [S3.2-P12] or [P12]
+        const tagMatch = (item.paragraph || '').match(/\[(S?\d+[-P]?\d*)\]/i) || (item.claim || '').match(/\[(S?\d+[-P]?\d*)\]/i);
+        if (tagMatch && state.paperEvidenceIndex) {
+          const tag = tagMatch[1].toUpperCase().replace('P', '-P');
+          const found = state.paperEvidenceIndex[tag] || state.paperEvidenceIndex['S' + tag] || Object.values(state.paperEvidenceIndex).find(v => v.sectionId === tag);
+          if (found) {
+            section = section || found.sectionTitle;
+            paragraph = paragraph || tag;
+            quote = quote || (found.text ? found.text.slice(0, 200) + (found.text.length > 200 ? '...' : '') : null);
+          }
+        }
+        
+        return `
+        <div class="evidence-card">
+          <div class="evidence-claim">${escapeHtml(item.claim || 'N/A')}</div>
+          ${section ? `<div class="evidence-meta">📖 Section: ${escapeHtml(section)}</div>` : ''}
+          ${paragraph && paragraph !== 'N/A' ? `<div class="evidence-meta">🔖 ${escapeHtml(paragraph)}</div>` : ''}
+          ${quote && quote !== 'N/A' ? `<div class="evidence-quote">"${escapeHtml(quote)}"</div>` : '<div class="evidence-quote evidence-quote-missing">⚠️ Auto-quote unavailable (paper not loaded or evidence not found)</div>'}
+        </div>
+      `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderProfileSummary(profile) {
+  if (!profile?.recurringGaps?.length) return '';
+  
+  // Sort gaps by frequency
+  const sortedGaps = profile.recurringGaps
+    .map(gap => ({ 
+      gap, 
+      count: profile.gapFrequency?.[gap] || 1 
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 4);
+  
+  return `
+    <div class="profile-summary">
+      <div class="profile-summary-label">🧠 你的学习画像</div>
+      <div class="profile-summary-gaps">
+        ${sortedGaps.map(g => {
+          const label = g.count > 1 ? `${escapeHtml(g.gap)} (×${g.count})` : escapeHtml(g.gap);
+          return `<span>${label}</span>`;
+        }).join('')}
+      </div>
+      ${profile.sessions ? `<div style="font-size:10px;color:#999;margin-top:4px;">已积累 ${profile.sessions} 次诊断</div>` : ''}
+    </div>
+  `;
+}
+
 function renderMessages() {
   chatThread.querySelectorAll('.chat-message').forEach((node) => node.remove());
 
@@ -491,13 +685,67 @@ function renderMessages() {
       `;
     }
 
+    // Render drills as interactive checkboxes
+    let drillsHtml = '';
+    if (message.drills?.length && !message.loading) {
+      drillsHtml = `
+        <div class="drill-checklist">
+          <span class="drill-label">🎯 Verification Drills:</span>
+          ${message.drills.map((drill, i) => `
+            <label class="drill-item">
+              <input type="checkbox" data-drill-id="${drill.id}" />
+              <span class="drill-task">${escapeHtml(drill.task)}</span>
+              ${drill.evidence?.paragraph ? `<span class="drill-evidence">[${drill.evidence.paragraph}]</span>` : ''}
+            </label>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // Parse and render evidence cards from assistant messages
+    let evidenceHtml = '';
+    if (message.role === 'assistant' && !message.loading && !message.compact) {
+      const evidenceItems = parseEvidence(message.content || '');
+      evidenceHtml = renderEvidence(evidenceItems);
+    }
+
+    // Render profile summary after first assistant response
+    let profileHtml = '';
+    if (message.role === 'assistant' && !message.loading && state.profile?.recurringGaps?.length) {
+      profileHtml = renderProfileSummary(state.profile);
+    }
+
     article.innerHTML = `
       <div class="message-bubble">
         <span class="message-role">${message.role === 'assistant' ? 'Truth Tutor' : 'You'}${message.loading ? '<span class="loading-dot"></span>' : ''}</span>
         <div class="message-content ${message.compact ? 'compact' : ''}">${renderMarkdownLite(message.content || '', message.compact)}</div>
+        ${evidenceHtml}
         ${optionsHtml}
+        ${drillsHtml}
+        ${profileHtml}
       </div>
     `;
+    
+    // Bind drill checkbox events
+    if (message.drills?.length) {
+      article.querySelectorAll('.drill-item input').forEach(checkbox => {
+        checkbox.addEventListener('change', async (e) => {
+          const drillId = e.target.dataset.drillId;
+          const completed = e.target.checked;
+          
+          // Update local state
+          const drill = state.drills.find(d => d.id === drillId);
+          if (drill) {
+            drill.completed = completed;
+            // Save to backend
+            await postJson('/api/drills', { items: state.drills });
+            
+            // Visual feedback
+            e.target.closest('.drill-item').classList.toggle('completed', completed);
+          }
+        });
+      });
+    }
 
     article.querySelectorAll('.option-btn').forEach(btn => {
       btn.addEventListener('click', () => {

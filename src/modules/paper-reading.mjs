@@ -3,25 +3,35 @@ import { buildCommonSystemPrompt, bullet, cleanLines } from './shared.mjs';
 export const PAPER_READING_OUTPUT_TEMPLATE = `# Paper Reading Truth Report
 
 ## 1. Reality Check
-State bluntly why this reader is not actually through the paper yet.
+State bluntly why this reader is not actually through the paper yet. [Cite evidence: Section / [Sx-Py]]
 
 ## 2. Paper in Plain Terms
 Explain what problem the paper is solving, what it proposes, and what evidence it uses.
 
 ## 3. Why You Are Stuck Here
-Identify the exact bottleneck: notation, math, objective, architecture intuition, experiments, or reading method.
+Identify the exact bottleneck: notation, math, objective, architecture intuition, experiments, or reading method. [Evidence: Cite specific paragraph(s) like [S3.2-P12], [S4-P5] that reveal this bottleneck]
 
 ## 4. Missing Foundations
-List the prerequisite topics that are missing or weak, in priority order.
+List the prerequisite topics that are missing or weak, in priority order. [For each gap, cite any paper paragraph that assumes this knowledge using [Sx-Py] format]
 
 ## 5. Section-by-Section Reread Order
-Tell the reader what to reread first, what to skip for now, and what question to answer in each section.
+Tell the reader what to reread first, what to skip for now, and what question to answer in each section. [Reference target sections by name, e.g., "Section 3.1"]
 
 ## 6. Paper Recovery Plan
 Give an immediate next move, a short repair sequence, and a next-stage reading plan.
 
 ## 7. Verification Drills
-Give 3-5 drills that prove the reader now understands the paper instead of merely recognizing it.
+Give 3-5 specific, checkable drills that prove the reader now understands the paper instead of merely recognizing it.
+- Each drill should have: (1) Task description, (2) Pass/fail criteria, (3) Evidence anchor (cite [Sx-Py] when relevant)
+- Example: "Explain in 2 sentences why [S3.2-P8]'s method outperforms the baseline. Pass: specific mechanism mentioned. Fail: vague slogan."
+
+## Evidence Citation Rule (MANDATORY)
+Every diagnosis claim that relates to the paper content MUST cite specific paragraph evidence in [Sx-Py] format (Section number + Paragraph number).
+- "Why You Are Stuck Here" → MUST cite [Sx-Py]
+- "Missing Foundations" → MUST cite which paragraphs assume the prerequisite
+- "Verification Drills" → SHOULD cite [Sx-Py] when the drill targets specific paper content
+- The system will auto-fill Section title and Quote text from the paper - you MUST provide the correct [Sx-Py] tag.
+- If no paragraph evidence exists for a claim, state "No direct paragraph evidence for this claim" instead of citing.
 `;
 
 export function buildPaperReadingPrompt({ input, strictness, language }) {
@@ -40,6 +50,11 @@ export function buildPaperReadingPrompt({ input, strictness, language }) {
       'If Paper Evidence is supplied below, reason from it directly.',
       'Do not say you cannot access the paper or PDF when Paper Evidence is already provided.',
       'Make the answer highly scannable in markdown. Keep each section tight and readable.',
+      // NEW: Evidence citation rules
+      'When citing evidence from the paper, use the paragraph tags like [P3], [P12], etc.',
+      'Every diagnosis claim should reference specific paragraph evidence when available.',
+      'For "Why You Are Stuck Here", cite which paragraph(s) reveal the bottleneck.',
+      'For "Missing Foundations", cite any paragraph that assumes the prerequisite knowledge.',
     ],
     outputTemplate: PAPER_READING_OUTPUT_TEMPLATE,
   });

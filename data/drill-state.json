@@ -1,0 +1,29 @@
+{
+  "items": [
+    {
+      "id": "aaddbdc5-abf0-45ae-a64b-31027c2b40fd",
+      "task": "*暂时跳过**:",
+      "completed": false,
+      "evidence": null
+    },
+    {
+      "id": "c5f825d9-3e6f-4d56-b798-2bedbc445b2f",
+      "task": "Section 2.1 中的数学推导细节（Eq 2.1-2.2）不是第一步要掌握的",
+      "completed": false,
+      "evidence": null
+    },
+    {
+      "id": "5a65f244-fe11-4a2f-a470-b04a0bdabaca",
+      "task": "*暂时跳过**:",
+      "completed": false,
+      "evidence": null
+    },
+    {
+      "id": "1d1385be-9ba5-4e7f-b16d-573f36b9ccdc",
+      "task": "Section 2.1 中的数学推导细节（Eq 2.1-2.2）不是第一步要掌握的",
+      "completed": false,
+      "evidence": null
+    }
+  ],
+  "updatedAt": "2026-03-13T11:39:22.953Z"
+}

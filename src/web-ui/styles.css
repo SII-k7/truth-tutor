@@ -113,3 +113,75 @@ button { cursor: pointer; border: none; background: none; }
 
 @media (max-width: 1400px) { .workspace { grid-template-columns: 1fr; height: auto; } .viewer-panel { min-height: 55vh; } .chat-panel { min-height: 45vh; } }
 @media (max-width: 900px) { .app-shell { padding: 12px; } .topbar { flex-direction: column; align-items: stretch; } .brand-container { justify-content: center; } .topbar-search { max-width: 100%; } .control-cluster { justify-content: center; } }
+
+/* Drill Checklist */
+.drill-checklist { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+.drill-label { font-size: 11px; font-weight: 600; color: var(--text-faint); margin-bottom: 8px; display: block; }
+.drill-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; margin-bottom: 6px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; }
+.drill-item:hover { border-color: var(--accent); }
+.drill-item.completed { background: #e8f5e9; border-color: #4caf50; }
+.drill-item input[type="checkbox"] { margin-top: 3px; accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+.drill-task { font-size: 12px; color: var(--text); line-height: 1.4; flex: 1; }
+.drill-evidence { font-size: 10px; color: var(--accent); font-weight: 600; background: var(--accent-light); padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+
+/* Profile Display */
+.profile-summary { margin-top: 8px; padding: 8px 12px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; font-size: 11px; }
+.profile-summary-label { font-weight: 600; color: #f57c00; margin-bottom: 4px; }
+.profile-summary-gaps { color: var(--text-soft); }
+.profile-summary-gaps span { display: inline-block; background: #ffe0b2; padding: 2px 8px; border-radius: 10px; margin: 2px 4px 2px 0; font-size: 10px; color: #e65100; }
+
+.evidence-cards {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.evidence-cards h4 {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  color: #495057;
+}
+
+.evidence-card {
+  background: white;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.evidence-card:last-child {
+  margin-bottom: 0;
+}
+
+.evidence-claim {
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 0.5rem;
+}
+
+.evidence-meta {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+
+.evidence-quote {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #f1f3f5;
+  border-left: 3px solid #adb5bd;
+  font-style: italic;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.evidence-quote-missing {
+  border-left-color: #ffc107;
+  background: #fff8e1;
+  color: #856404;
+  font-style: normal;
+  font-size: 0.8rem;
+}

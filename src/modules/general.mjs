@@ -19,9 +19,17 @@ Give a prioritized plan with immediate, short-term, and next-stage actions.
 
 ## 6. Practice Drills
 Give 3-5 drills or exercises that directly fix the gap.
+- Each drill must include: Drill type / Task / Pass check / Why this closes the gap
 
 ## 7. Win Condition
 Describe how the user can verify that the gap is actually closed.
+
+## Evidence
+If paper evidence is available, add a final section named "## Evidence" with bullets in this exact form:
+- Claim: ...
+  - Section: ...
+  - Paragraph: [P#] or N/A
+  - Quote: "..." or N/A
 `;
 
 export function buildGeneralPrompt({ input, strictness, language }) {
@@ -33,6 +41,8 @@ export function buildGeneralPrompt({ input, strictness, language }) {
       'Do not merely simplify the topic. Diagnose the gap, then prescribe the repair plan.',
       'If paper evidence is supplied below, use it directly. Do not say you cannot access the paper.',
       'Write for scanability: short sections, bullets, and compact paragraphs.',
+      'If paper evidence exists, add a final ## Evidence section with structured bullets: Claim / Section / Paragraph / Quote.',
+      'Do not invent quotes. If you do not have a quote, write N/A.',
     ],
     outputTemplate: GENERAL_OUTPUT_TEMPLATE,
   });

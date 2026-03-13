@@ -14,10 +14,12 @@ export async function searchArxiv(query, maxResults = 5) {
     return CACHE.get(cacheKey);
   }
 
-  const titleUrl = `${ARXIV_API}?search_query=${encodeURIComponent(`ti:"${cleanQuery}"`)}&start=0&max_results=${maxResults}`;
+  // Fuzzy search: use ti: without quotes for partial title matching
+  const titleUrl = `${ARXIV_API}?search_query=${encodeURIComponent(`ti:${cleanQuery}`)}&start=0&max_results=${maxResults}`;
   let entries = parseArxivFeed(await fetchText(titleUrl)).slice(0, maxResults);
 
   if (!entries.length) {
+    // Fallback to all fields search if title search yields no results
     const fallbackUrl = `${ARXIV_API}?search_query=${encodeURIComponent(`all:${cleanQuery}`)}&start=0&max_results=${maxResults}`;
     entries = parseArxivFeed(await fetchText(fallbackUrl)).slice(0, maxResults);
   }
@@ -41,6 +43,11 @@ export async function enrichInputWithPaperContext(input) {
     CACHE.set(cacheKey, enriched);
   }
 
+  const paragraphs = enriched.paperParagraphs || [];
+  const excerptParagraphs = selectRelevantExcerpt(paragraphs, normalized.confusion) || [];
+  const selected = excerptParagraphs.length ? excerptParagraphs : paragraphs.slice(0, 18);
+  const numberedExcerpt = formatNumberedExcerpt(selected);
+
   return {
     ...normalized,
     paperId: paperRef.paperId,
@@ -49,7 +56,10 @@ export async function enrichInputWithPaperContext(input) {
     topic: normalized.topic || enriched.paperTitle || paperRef.paperId,
     paperDomain: normalized.paperDomain || enriched.paperDomain,
     paperSummary: enriched.paperSummary,
-    paperExtract: selectRelevantExcerpt(enriched.paperParagraphs || [], normalized.confusion) || enriched.paperExtractDefault,
+    // Provide numbered paragraphs so the model can cite evidence as [Sx-Py]
+    paperExtract: numberedExcerpt || enriched.paperExtractDefault,
+    // A compact index so UI can auto-fill Section/Quote without trusting the model
+    paperEvidenceIndex: buildEvidenceIndex(selected),
     paperContextSource: enriched.paperContextSource,
   };
 }
@@ -85,7 +95,10 @@ async function fetchPaperContext(paperId) {
   }
 
   const paperParagraphs = htmlText ? extractArxivParagraphs(htmlText) : [];
-  const paperExtractDefault = paperParagraphs.join('\n\n').slice(0, MAX_EXTRACT_CHARS);
+  const paperExtractDefault = paperParagraphs
+    .map((p) => (typeof p === 'string' ? p : p.text))
+    .join('\n\n')
+    .slice(0, MAX_EXTRACT_CHARS);
 
   return {
     paperId,
@@ -145,37 +158,106 @@ function extractArxivId(value) {
 }
 
 function extractArxivParagraphs(html) {
-  const abstractBlock = html.match(/<div[^>]*class="[^"]*ltx_abstract[^"]*"[\s\S]*?<\/div>/i)?.[0] || '';
-  const abstractParagraphs = extractParagraphs(abstractBlock);
+  // Extract in document order: headings + paragraphs.
+  // We associate each paragraph with the most recent heading ("section").
+  const blocks = extractBlocks(html);
 
-  const paragraphs = extractParagraphs(html)
-    .filter((paragraph) => paragraph.length > 40)
-    .filter((paragraph) => !/content selection saved|describe the issue below|license: arxiv\.org|skip to main content/i.test(paragraph));
+  let currentSection = 'Abstract';
+  let sectionIndex = 0;
+  const sectionIds = new Map();
 
-  const deduped = [];
-  const seen = new Set();
-
-  for (const paragraph of [...abstractParagraphs, ...paragraphs]) {
-    const key = paragraph.slice(0, 180);
-    if (!seen.has(key)) {
-      seen.add(key);
-      deduped.push(paragraph);
+  const paragraphs = [];
+  for (const block of blocks) {
+    if (block.type === 'heading') {
+      const title = block.text;
+      if (title) {
+        currentSection = title;
+        if (!sectionIds.has(currentSection)) {
+          sectionIndex += 1;
+          sectionIds.set(currentSection, `S${sectionIndex}`);
+        }
+      }
+      continue;
     }
-    if (deduped.length >= 60) {
-      break;
+
+    if (block.type === 'para') {
+      const text = block.text;
+      if (!text || text.length <= 40) continue;
+      if (/content selection saved|describe the issue below|license: arxiv\.org|skip to main content/i.test(text)) continue;
+
+      const sectionId = sectionIds.get(currentSection) || 'S0';
+      paragraphs.push({ sectionId, sectionTitle: currentSection, text });
+      if (paragraphs.length >= 60) break;
     }
   }
 
-  return deduped;
+  return dedupeParagraphObjects(paragraphs);
+}
+
+function extractBlocks(html) {
+  const abstractBlock = html.match(/<div[^>]*class="[^"]*ltx_abstract[^"]*"[\s\S]*?<\/div>/i)?.[0] || '';
+
+  const blocks = [];
+
+  // Abstract paragraphs first
+  for (const para of extractParagraphs(abstractBlock)) {
+    blocks.push({ type: 'para', text: para });
+  }
+
+  const patterns = [
+    { type: 'heading', re: /<h[1-6][^>]*class="[^"]*ltx_title[^"]*"[^>]*>([\s\S]*?)<\/h[1-6]>/gi },
+    { type: 'para', re: /<p[^>]*class="[^"]*ltx_p[^"]*"[^>]*>([\s\S]*?)<\/p>/gi },
+  ];
+
+  // Collect matches with positions
+  const matches = [];
+  for (const { type, re } of patterns) {
+    for (const match of html.matchAll(re)) {
+      matches.push({ type, index: match.index ?? 0, raw: match[1] ?? '' });
+    }
+  }
+
+  matches.sort((a, b) => a.index - b.index);
+
+  for (const m of matches) {
+    if (m.type === 'heading') {
+      const text = normalizeWhitespace(decodeEntities(stripTags(m.raw)));
+      if (text && text.length < 160) blocks.push({ type: 'heading', text });
+    } else {
+      const text = normalizeWhitespace(decodeEntities(normalizeMath(stripTags(m.raw))));
+      if (text) blocks.push({ type: 'para', text });
+    }
+  }
+
+  return blocks;
+}
+
+function normalizeMath(text) {
+  return String(text || '').replace(/\s*\[MATH\]\s*/g, ' [MATH] ');
+}
+
+function stripTags(htmlText) {
+  return String(htmlText || '').replace(/<math[\s\S]*?<\/math>/gi, ' [MATH] ').replace(/<[^>]+>/g, ' ');
 }
 
 function extractParagraphs(html) {
   return Array.from(html.matchAll(/<p[^>]*class="[^"]*ltx_p[^"]*"[^>]*>([\s\S]*?)<\/p>/gi))
     .map((match) => match[1])
-    .map((text) => text.replace(/<math[\s\S]*?<\/math>/gi, ' [MATH] '))
-    .map((text) => text.replace(/<[^>]+>/g, ' '))
+    .map((text) => stripTags(text))
     .map((text) => normalizeWhitespace(decodeEntities(text)))
     .filter(Boolean);
+}
+
+function dedupeParagraphObjects(items) {
+  const deduped = [];
+  const seen = new Set();
+  for (const item of items) {
+    const key = item.text.slice(0, 180);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(item);
+  }
+  return deduped;
 }
 
 function normalizeWhitespace(text) {
@@ -198,6 +280,37 @@ function decodeEntities(text) {
     .replace(/&#x2F;/g, '/');
 }
 
+// Format paragraphs with [Sx-Py] tags for evidence citation
+function formatNumberedExcerpt(paragraphs) {
+  if (!Array.isArray(paragraphs) || !paragraphs.length) return '';
+
+  // paragraphs can be strings (legacy) or objects {sectionId, sectionTitle, text}
+  return paragraphs
+    .map((p, i) => {
+      if (typeof p === 'string') {
+        return `[P${i + 1}] ${p}`;
+      }
+      const sectionId = p.sectionId || 'S0';
+      return `[${sectionId}-P${i + 1}] ${p.text}`;
+    })
+    .join('\n\n');
+}
+
+function buildEvidenceIndex(paragraphs) {
+  if (!Array.isArray(paragraphs) || !paragraphs.length) return {};
+  const index = {};
+  paragraphs.forEach((p, i) => {
+    if (!p || typeof p === 'string') return;
+    const tag = `${p.sectionId || 'S0'}-P${i + 1}`;
+    index[tag] = {
+      sectionId: p.sectionId || 'S0',
+      sectionTitle: p.sectionTitle || 'N/A',
+      text: p.text || '',
+    };
+  });
+  return index;
+}
+
 function selectRelevantExcerpt(paragraphs, confusion) {
   if (!Array.isArray(paragraphs) || !paragraphs.length) {
     return '';
@@ -209,11 +322,14 @@ function selectRelevantExcerpt(paragraphs, confusion) {
   }
 
   const scored = paragraphs
-    .map((paragraph, index) => ({
-      index,
-      paragraph,
-      score: scoreParagraph(paragraph, keywords),
-    }))
+    .map((paragraph, index) => {
+      const text = typeof paragraph === 'string' ? paragraph : paragraph.text;
+      return {
+        index,
+        paragraph,
+        score: scoreParagraph(text, keywords),
+      };
+    })
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score || a.index - b.index)
     .slice(0, 12)

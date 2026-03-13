@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.0.0 - 2026-03-13
+
+### Added
+- **Diagnosis-first learning coach** - Tell you WHY you don't understand, not just explain it more simply
+- **Evidence-based output** - Every diagnosis includes "Evidence: Section / Paragraph / Quote" structure
+- **Personalized learning profile** - Tracks recurring gaps across sessions for smarter future diagnoses
+- **Verification drills** - Interactive checkboxes for practice tasks with pass/fail criteria
+- **Strictness levels** - Four tone options: soft, direct, strict, brutal
+- **Three operating modes:**
+  - General: Concepts, interview prep, skill gaps
+  - Paper-reading: Research papers with section-by-section reread order
+  - alphaXiv recovery: When you already asked alphaXiv and still don't get it
+- **Full-stack Web UI** - Clean split-view: paper on left, conversation on right
+- **Learning profile persistence** - Saves user gaps and session history locally
+- **Drill tracker** - Tracks completed/incomplete drills across sessions
+
+### Changed
+- Rebranded as a complete open-source product, not just a prompt tool
+- Optimized response contracts with structured output formats
+- Enhanced evidence extraction and citation system
+
+### Fixed
+- Input field now clears immediately after sending (not after response)
+- UI polish and bug fixes
+
+---
+
 ## 0.3.5 - 2026-03-11
 
 ### Added

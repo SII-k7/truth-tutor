@@ -22,6 +22,14 @@ Give an immediate next move, a short repair sequence, and a next-stage paper rea
 
 ## 7. Verification Drills
 Give 3-5 drills or checks that prove the learner actually gets it now.
+- Each drill must include: Drill type / Task / Pass check / Why this closes the gap
+
+## Evidence
+Add a final section named "## Evidence" with bullets in this exact form:
+- Claim: ...
+  - Section: ...
+  - Paragraph: [P#] or N/A
+  - Quote: "..." or N/A
 `;
 
 export function buildAlphaXivPrompt({ input, strictness, language }) {
@@ -40,6 +48,8 @@ export function buildAlphaXivPrompt({ input, strictness, language }) {
       'If Paper Evidence is supplied below, reason from it directly.',
       'Do not say you cannot access the paper or PDF when Paper Evidence is already provided.',
       'Make the answer highly scannable in markdown. Keep each section tight and readable.',
+      'Add a final ## Evidence section with structured bullets: Claim / Section / Paragraph / Quote.',
+      'Do not invent quotes. If you do not have a quote, write N/A.',
     ],
     outputTemplate: ALPHAXIV_OUTPUT_TEMPLATE,
   });

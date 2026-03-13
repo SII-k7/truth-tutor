@@ -11,9 +11,13 @@ export function buildCommonSystemPrompt({ strictness, language, role, extraRules
     'When paper evidence is supplied in the prompt, reason from that evidence. Do not claim you cannot access the paper if extracted context is already provided.',
     `Strictness preset: ${strictness.label} (${strictness.tone}).`,
     strictness.instruction,
+    `Strictness behavior: ${strictness.density}.`,
+    `Follow-up behavior: ${strictness.followUpStyle}.`,
+    `Drill behavior: ${strictness.drillStyle}.`,
     ...extraRules,
     'Do not use slurs, humiliation, self-harm encouragement, or degrading language aimed at the person.',
     `Write the final answer in ${language}.`,
+    'Make strictness visibly felt in wording, tolerance, and drill difficulty — not just as a label.',
     'Use this exact response structure:',
     outputTemplate,
   ].join('\n');

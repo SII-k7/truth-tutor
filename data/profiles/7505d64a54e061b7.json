@@ -1,0 +1,24 @@
+{
+  "profileKey": "default",
+  "recurringGaps": [
+    "Forward-Backward (FB) Representation** - 核心基础，论文以此构建。必须先读 TirinzoniTFGKXL25zeroshot 或 Touati21fb 了解 FB 方法。",
+    "Successor Features (SF)** - FB 的理论基础。论文使用 ψ^z(s) 作为 successor features。",
+    "证据: [S2.1-P5] \"Eq. 2.1 implies that ψ^z(s) is the successor features of φ(s)\"",
+    "Unsupervised RL vs Imitation Learning 的本质区别** - 你还在用模仿学习的框架理解 RL，这是根本性的认知错误。",
+    "Latent Conditioned Policy** - 论文中 π(a|s, z) 的含义：给定状态和 latent vector 输出动作。",
+    "-"
+  ],
+  "gapFrequency": {
+    "Forward-Backward (FB) Representation** - 核心基础，论文以此构建。必须先读 TirinzoniTFGKXL25zeroshot 或 Touati21fb 了解 FB 方法。": 2,
+    "Successor Features (SF)** - FB 的理论基础。论文使用 ψ^z(s) 作为 successor features。": 2,
+    "证据: [S2.1-P5] \"Eq. 2.1 implies that ψ^z(s) is the successor features of φ(s)\"": 2,
+    "Unsupervised RL vs Imitation Learning 的本质区别** - 你还在用模仿学习的框架理解 RL，这是根本性的认知错误。": 2,
+    "Latent Conditioned Policy** - 论文中 π(a|s, z) 的含义：给定状态和 latent vector 输出动作。": 2,
+    "-": 2
+  },
+  "recentTopics": [
+    "BFM-Zero: A Promptable Behavioral Foundation Model for Humanoid Control Using Unsupervised Reinforcement Learning"
+  ],
+  "sessions": 2,
+  "updatedAt": "2026-03-13T11:39:22.947Z"
+}

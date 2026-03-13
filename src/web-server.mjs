@@ -8,6 +8,8 @@ import { askModel } from './model-client.mjs';
 import { normalizeMode } from './modes.mjs';
 import { searchArxiv, enrichInputWithPaperContext } from './paper-context.mjs';
 import { resolveApiConfig } from './provider-config.mjs';
+import { loadLearningProfile, saveLearningProfile, summarizeLearningProfile } from './learning-profile.mjs';
+import { loadDrillState, saveDrillState } from './drill-tracker.mjs';
 
 const PUBLIC_DIR = new URL('./web-ui/', import.meta.url);
 const EXAMPLES_DIR = new URL('../examples/', import.meta.url);
@@ -38,6 +40,133 @@ export async function startWebServer({ host = '127.0.0.1', port = 3474, openBrow
         return sendJson(res, 200, { items: await searchArxiv(query, 6) });
       }
 
+      if (req.method === 'GET' && url.pathname === '/api/profile') {
+        const profile = await loadLearningProfile('default');
+        return sendJson(res, 200, profile);
+      }
+
+      if (req.method === 'POST' && url.pathname === '/api/profile/reset') {
+        await saveLearningProfile('default', {}, '');
+        return sendJson(res, 200, { status: 'reset', profile: await loadLearningProfile('default') });
+      }
+
+      if (req.method === 'GET' && url.pathname === '/api/drills') {
+        const state = await loadDrillState();
+        return sendJson(res, 200, state);
+      }
+
+      if (req.method === 'POST' && url.pathname === '/api/drills') {
+        const body = await readJsonBody(req);
+        const items = Array.isArray(body.items) ? body.items : [];
+        const state = await saveDrillState(items);
+        return sendJson(res, 200, state);
+      }
+
+      if (req.method === 'POST' && url.pathname === '/api/drills/clear') {
+        const state = await saveDrillState([]);
+        return sendJson(res, 200, state);
+      }
+
+      if (req.method === 'GET' && url.pathname === '/api/drills/library') {
+        // Return all available drill templates
+        const templates = {
+          derivation: {
+            id: 'derivation',
+            name: 'Derivation Check',
+            description: 'Ask learner to derive one intermediate step',
+            icon: '📐'
+          },
+          mechanism: {
+            id: 'mechanism',
+            name: 'Mechanism Check',
+            description: 'Explain why one component changes outcome vs baseline',
+            icon: '⚙️'
+          },
+          evidence: {
+            id: 'evidence',
+            name: 'Evidence Check',
+            description: 'Point to paragraph/section/figure supporting a claim',
+            icon: '📄'
+          },
+          ablation: {
+            id: 'ablation',
+            name: 'Ablation Check',
+            description: 'What result worsens if one module is removed',
+            icon: '🔬'
+          },
+          transfer: {
+            id: 'transfer',
+            name: 'Transfer Check',
+            description: 'Apply idea to nearby example or toy case',
+            icon: '🔀'
+          },
+          foundation: {
+            id: 'foundation',
+            name: 'Foundation Check',
+            description: '2-sentence explanation of core prerequisite',
+            icon: '🏗️'
+          },
+          section: {
+            id: 'section',
+            name: 'Section Check',
+            description: 'Reread target section and answer narrow question',
+            icon: '📖'
+          }
+        };
+        return sendJson(res, 200, { templates: Object.values(templates), total: Object.keys(templates).length });
+      }
+
+      if (req.method === 'POST' && url.pathname === '/api/compare-strictness') {
+        const body = await readJsonBody(req);
+        const { question, mode: compareMode, paperId } = body;
+        
+        if (!question) {
+          return sendJson(res, 400, { error: 'question is required' });
+        }
+
+        // Run with all 4 strictness levels in parallel
+        const strictnessLevels = ['soft', 'direct', 'strict', 'brutal'];
+        const results = await Promise.all(
+          strictnessLevels.map(async (strictness) => {
+            try {
+              const input = {
+                mode: compareMode || 'general',
+                strictness,
+                language: 'Chinese',
+                confusion: question,
+                topic: 'Comparison mode',
+                paperId
+              };
+              const prompt = buildPrompt(validateInput(input));
+              
+              const result = await askModel({
+                apiStyle: body.apiStyle,
+                apiBaseUrl: body.apiBaseUrl,
+                apiKey: body.apiKey,
+                model: body.model,
+                timeoutMs: body.timeoutMs,
+                systemPrompt: prompt.systemPrompt,
+                userPrompt: prompt.userPrompt,
+              });
+
+              return {
+                strictness,
+                content: result.content,
+                success: true
+              };
+            } catch (error) {
+              return {
+                strictness,
+                content: error.message,
+                success: false
+              };
+            }
+          })
+        );
+
+        return sendJson(res, 200, { question, mode: compareMode, results });
+      }
+
       if (req.method === 'GET' && url.pathname.startsWith('/api/examples/')) {
         const name = decodeURIComponent(url.pathname.replace('/api/examples/', ''));
         return sendJson(res, 200, await readExample(name));
@@ -54,6 +183,17 @@ export async function startWebServer({ host = '127.0.0.1', port = 3474, openBrow
         const body = await readJsonBody(req);
         const input = await enrichInputWithPaperContext(normalizeInputPayload(body.input || body));
         const prompt = buildPrompt(validateInput(input));
+        
+        // Load prior learning profile for context
+        const profile = await loadLearningProfile('default');
+        const profileSummary = summarizeLearningProfile(profile);
+        
+        // Inject profile context into prompt if available
+        let enhancedUserPrompt = prompt.userPrompt;
+        if (profileSummary) {
+          enhancedUserPrompt += `\n\n# Prior Learning Profile\n${profileSummary}\n(Note: Reference recurring gaps if relevant to this diagnosis.)`;
+        }
+        
         const result = await askModel({
           apiStyle: body.apiStyle,
           apiBaseUrl: body.apiBaseUrl,
@@ -62,13 +202,25 @@ export async function startWebServer({ host = '127.0.0.1', port = 3474, openBrow
           temperature: body.temperature,
           timeoutMs: body.timeoutMs,
           systemPrompt: prompt.systemPrompt,
-          userPrompt: prompt.userPrompt,
+          userPrompt: enhancedUserPrompt,
         });
+
+        // Save/update learning profile after response
+        if (result.content) {
+          await saveLearningProfile('default', input, result.content).catch(() => {});
+        }
 
         return sendJson(res, 200, {
           input,
-          prompt,
+          prompt: { ...prompt, userPrompt: enhancedUserPrompt },
           result,
+          profile: { 
+            recurringGaps: profile.recurringGaps, 
+            gapFrequency: profile.gapFrequency || {},
+            recentTopics: profile.recentTopics,
+            sessions: profile.sessions,
+          },
+          paperEvidenceIndex: input.paperEvidenceIndex || {},
         });
       }
 

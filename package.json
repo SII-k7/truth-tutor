@@ -1,6 +1,6 @@
 {
   "name": "truth-tutor",
-  "version": "0.3.5",
+  "version": "1.0.0",
   "description": "Diagnosis-first learning coach with dedicated paper-reading and alphaXiv recovery modes.",
   "type": "module",
   "exports": {
