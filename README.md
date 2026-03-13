@@ -1,5 +1,9 @@
 # Truth Tutor
 
+<a href="https://github.com/SII-k7/truth-tutor/releases"><img src="https://img.shields.io/github/v/release/SII-k7/truth-tutor?include_prereleases&label=version&style=flat-square" alt="Version"></a>
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="License: MIT"></a>
+<a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-%3E=20-blue.svg?style=flat-square" alt="Node.js >= 20"></a>
+
 > A diagnosis-first learning coach for people who do not need comfort — especially graduate students and researchers stuck on papers.
 
 Truth Tutor is an open-source prompt engine, CLI, and OpenClaw skill for one specific job:
@@ -9,6 +13,49 @@ Truth Tutor is an open-source prompt engine, CLI, and OpenClaw skill for one spe
 3. prescribe a **concrete recovery plan**.
 
 Most AI study tools try to explain things more simply. Truth Tutor is built to do something harsher and more useful: tell you what your actual bottleneck is.
+
+## Quick Start
+
+```bash
+# Install
+npm install -g truth-tutor
+
+# Start Web UI
+truth-tutor web
+
+# Or use with npx
+npx truth-tutor web
+```
+
+## Table of Contents
+
+- [Features](#features)
+- [Why This Exists](#why-this-exists)
+- [Core Principles](#core-principles)
+- [Modes](#modes)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Web UI](#web-ui)
+- [Examples](#examples)
+- [Strictness Levels](#strictness-levels)
+- [Security](#security)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Features
+
+- **Diagnosis-first learning coach** - Tell you WHY you don't understand, not just explain it more simply
+- **Evidence-based output** - Every diagnosis includes structured citations from source materials
+- **Personalized learning profile** - Tracks recurring gaps across sessions for smarter diagnoses
+- **Verification drills** - Interactive practice tasks with pass/fail criteria
+- **Three operating modes:**
+  - General: Concepts, interview prep, skill gaps
+  - Paper-reading: Research papers with section-by-section guidance
+  - alphaXiv recovery: When you already asked alphaXiv and still don't get it
+- **Four strictness levels:** soft, direct, strict, brutal
+- **Full-stack Web UI** - Clean split-view interface
+- **CLI tool** - Powerful command-line interface
+- **Library API** - Import as a Node.js module
 
 ## What changed in v0.2.0
 
@@ -336,17 +383,37 @@ python3 /opt/homebrew/lib/node_modules/openclaw/skills/skill-creator/scripts/pac
 - [x] OpenClaw skill version
 - [x] Dedicated paper-reading module
 - [x] alphaXiv recovery mode
-- [ ] Web UI
+- [x] Web UI
 - [ ] alphaXiv browser helper / extension bridge
 - [ ] Subject-specific gap taxonomies (math / systems / ML / economics / writing)
 - [ ] Longitudinal learner memory
+
+## Contributing
+
+Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+## Security
+
+If you discover a security vulnerability, please see our [Security Policy](SECURITY.md).
+
+## Code of Conduct
+
+Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
 ## Release / launch assets
 
 - `docs/launch-copy.md`
 - `CHANGELOG.md`
 - `docs/alphaxiv-integration.md`
+- `FAQ.md`
+- `DEVELOPMENT.md`
 
 ## License
 
 MIT
+
+## Links
+
+- [GitHub Repository](https://github.com/SII-k7/truth-tutor)
+- [ClawHub Skill](https://clawhub.com/skills/truth-tutor)
+- [Issues](https://github.com/SII-k7/truth-tutor/issues)
