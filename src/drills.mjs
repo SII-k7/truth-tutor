@@ -1,3 +1,11 @@
+/**
+ * Build drill guidance based on mode and strictness
+ * @param {Object} options - Options object
+ * @param {string} options.mode - Operating mode (general, paper-reading, alphaxiv)
+ * @param {Object} options.strictness - Strictness preset object
+ * @param {boolean} options.hasPaperEvidence - Whether paper evidence is available
+ * @returns {string} Drill guidance text
+ */
 export function buildDrillGuidance({ mode, strictness, hasPaperEvidence }) {
   const templates = [
     'Derivation check: ask the learner to derive one intermediate step, not the whole proof.',
@@ -5,6 +13,8 @@ export function buildDrillGuidance({ mode, strictness, hasPaperEvidence }) {
     'Evidence check: ask the learner to point to one paragraph / section / figure that supports a claim.',
     'Ablation check: ask what result should worsen if one module is removed, and why.',
     'Transfer check: ask the learner to apply the same idea to a nearby example or toy case.',
+    'Analogy check: ask the learner to explain the concept using a different domain analogy.',
+    'Counterfactual check: ask what would change if one assumption was removed.',
   ];
 
   if (mode === 'general') {
