@@ -42,6 +42,7 @@ const paperSearch = document.getElementById('paper-search');
 const paperResults = document.getElementById('paper-results');
 const mascot = document.getElementById('ai-mascot');
 const mascotThinking = document.getElementById('mascot-thinking');
+const darkModeToggle = document.getElementById('dark-mode-toggle');
 
 init().catch(showError);
 bindEvents();
@@ -56,6 +57,9 @@ async function init() {
   // Load learning profile and drills on startup
   loadProfile();
   loadDrills();
+  
+  // Initialize dark mode
+  initDarkMode();
 }
 
 async function loadProfile() {
@@ -107,6 +111,17 @@ function bindEvents() {
   document.addEventListener('click', (event) => {
     if (!paperResults.contains(event.target) && event.target !== paperSearch) {
       hideSearchResults();
+    }
+  });
+
+  if (darkModeToggle) {
+    darkModeToggle.addEventListener('click', toggleDarkMode);
+  }
+  document.addEventListener('keydown', (event) => {
+    // Ctrl/Cmd + D toggles dark mode
+    if ((event.ctrlKey || event.metaKey) && (event.key === 'd' || event.key === 'D')) {
+      event.preventDefault();
+      toggleDarkMode();
     }
   });
 
@@ -175,9 +190,31 @@ function handleModeChange() {
 }
 
 function handleComposerKeydown(event) {
+  // Ctrl+Enter or Cmd+Enter to send (cross-platform)
+  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+    event.preventDefault();
+    runDiagnosis();
+    return;
+  }
+  // Shift+Enter for new line (default behavior)
+  if (event.key === 'Enter' && event.shiftKey) {
+    return; // Allow default behavior (new line)
+  }
+  // Plain Enter to send
   if (event.key === 'Enter' && !event.shiftKey) {
     event.preventDefault();
     runDiagnosis();
+  }
+  // Escape to clear input
+  if (event.key === 'Escape') {
+    elements.confusion.value = '';
+    updateViewerFromComposer();
+    elements.confusion.blur();
+  }
+  // Keyboard shortcuts help
+  if (event.key === '?' && (event.ctrlKey || event.metaKey)) {
+    event.preventDefault();
+    showKeyboardShortcuts();
   }
 }
 
@@ -871,6 +908,45 @@ async function parseResponse(response) {
 
 function showError(error) {
   statusText.textContent = error.message;
+}
+
+function showKeyboardShortcuts() {
+  const shortcuts = `
+    <div class="keyboard-shortcuts-overlay" onclick="this.remove()">
+      <div class="keyboard-shortcuts-modal" onclick="event.stopPropagation()">
+        <h3>⌨️ 键盘快捷键</h3>
+        <ul>
+          <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> 发送诊断</li>
+          <li><kbd>Shift</kbd>+<kbd>Enter</kbd> 换行</li>
+          <li><kbd>Esc</kbd> 清空输入</li>
+          <li><kbd>Ctrl</kbd>+<kbd>D</kbd> 切换深色模式</li>
+          <li><kbd>Ctrl</kbd>+<kbd>?</kbd> 显示此帮助</li>
+        </ul>
+        <button onclick="this.closest('.keyboard-shortcuts-overlay').remove()">关闭</button>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', shortcuts);
+}
+
+function initDarkMode() {
+  // Check localStorage for dark mode preference
+  const isDarkMode = localStorage.getItem('truth-tutor-dark-mode') === 'true';
+  if (isDarkMode) {
+    document.documentElement.classList.add('dark-mode');
+    if (darkModeToggle) darkModeToggle.textContent = '☀️';
+  } else {
+    document.documentElement.classList.remove('dark-mode');
+    if (darkModeToggle) darkModeToggle.textContent = '🌙';
+  }
+}
+
+function toggleDarkMode() {
+  const isDarkMode = document.documentElement.classList.toggle('dark-mode');
+  localStorage.setItem('truth-tutor-dark-mode', isDarkMode);
+  if (darkModeToggle) {
+    darkModeToggle.textContent = isDarkMode ? '☀️' : '🌙';
+  }
 }
 
 function escapeHtml(value) {

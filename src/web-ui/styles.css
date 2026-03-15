@@ -9,6 +9,55 @@
   --accent-light: #eef0ff;
 }
 
+/* Dark Mode */
+:root.dark-mode {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --border: #334155;
+  --text: #f1f5f9;
+  --text-soft: #94a3b8;
+  --text-faint: #64748b;
+  --accent: #818cf8;
+  --accent-light: #312e81;
+}
+
+/* Dark mode overrides */
+:root.dark-mode .paper-caption {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+:root.dark-mode .paper-results {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+:root.dark-mode .empty-copy {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+:root.dark-mode .keyboard-shortcuts-modal {
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+:root.dark-mode .keyboard-shortcuts-modal h3 {
+  color: #f1f5f9;
+}
+
+:root.dark-mode .keyboard-shortcuts-modal li {
+  color: #94a3b8;
+}
+
+:root.dark-mode .keyboard-shortcuts-modal kbd {
+  background: #334155;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
 * { box-sizing: border-box; }
 html, body { margin: 0; min-height: 100%; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text); background: var(--bg); }
@@ -233,4 +282,84 @@ button { cursor: pointer; border: none; background: none; }
   .workspace { display: block; }
   .viewer-panel, .chat-panel { width: 100%; height: auto; }
   .chat-message { break-inside: avoid; }
+}
+
+/* Keyboard Shortcuts Modal */
+.keyboard-shortcuts-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+.keyboard-shortcuts-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.keyboard-shortcuts-modal h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  color: #1a1f36;
+}
+
+.keyboard-shortcuts-modal ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
+}
+
+.keyboard-shortcuts-modal li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  color: #4a5568;
+}
+
+.keyboard-shortcuts-modal kbd {
+  background: #f1f3f5;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #495057;
+}
+
+.keyboard-shortcuts-modal button {
+  width: 100%;
+  padding: 0.75rem;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.keyboard-shortcuts-modal button:hover {
+  background: #4f46e5;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
