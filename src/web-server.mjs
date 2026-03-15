@@ -176,14 +176,26 @@ export async function startWebServer({ host = '127.0.0.1', port = 3474, openBrow
 
       if (req.method === 'POST' && url.pathname === '/api/prompt') {
         const input = await readJsonBody(req);
-        const normalized = await enrichInputWithPaperContext(normalizeInputPayload(input));
+        let normalized = normalizeInputPayload(input);
+        try {
+          normalized = await enrichInputWithPaperContext(normalized);
+        } catch (e) {
+          // Fallback: proceed without paper context enrichment if it fails
+          console.error('Paper context enrichment failed:', e.message);
+        }
         const prompt = buildPrompt(validateInput(normalized));
         return sendJson(res, 200, prompt);
       }
 
       if (req.method === 'POST' && url.pathname === '/api/ask') {
         const body = await readJsonBody(req);
-        const input = await enrichInputWithPaperContext(normalizeInputPayload(body.input || body));
+        let input = normalizeInputPayload(body.input || body);
+        try {
+          input = await enrichInputWithPaperContext(input);
+        } catch (e) {
+          // Fallback: proceed without paper context enrichment if it fails
+          console.error('Paper context enrichment failed:', e.message);
+        }
         const prompt = buildPrompt(validateInput(input));
         
         // Load prior learning profile for context

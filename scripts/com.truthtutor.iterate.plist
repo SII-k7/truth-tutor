@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.truthtutor.iterate</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/node</string>
+        <string>/Users/zhukeqi/.openclaw/workspace/products/truth-tutor/scripts/iterate-15m.mjs</string>
+    </array>
+    
+    <key>WorkingDirectory</key>
+    <string>/Users/zhukeqi/.openclaw/workspace/products/truth-tutor</string>
+    
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <key>StartInterval</key>
+    <integer>900</integer>
+    
+    <key>StandardOutPath</key>
+    <string>/Users/zhukeqi/.openclaw/workspace/products/truth-tutor/data/iteration-logs/launchd.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/Users/zhukeqi/.openclaw/workspace/products/truth-tutor/data/iteration-logs/launchd-error.log</string>
+    
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+    
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>
