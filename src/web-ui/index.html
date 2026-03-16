@@ -103,7 +103,37 @@
 
         <section class="chat-panel">
           <div id="chat-thread" class="chat-thread">
-            <div id="empty-thread" class="empty-thread">Paste a paper link or search a paper title, then tell me exactly where you are stuck.</div>
+            <div id="empty-thread" class="empty-thread">
+              <div style="text-align: center; padding: 2rem;">
+                <h2 style="margin: 0 0 1rem 0; font-size: 1.5rem;">👋 欢迎使用 Truth Tutor</h2>
+                <p style="color: var(--text-soft); margin: 0 0 2rem 0;">粘贴论文链接或搜索论文标题，然后告诉我你哪里没懂。</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 2rem;">
+                  <button class="quick-example" onclick="populateExample('我不理解这篇论文中关于注意力机制的部分。能解释一下 self-attention 是如何工作的吗？')">
+                    <span style="font-size: 1.2rem;">🧠</span>
+                    <strong>注意力机制</strong>
+                    <small>理解 Transformer 中的关键概念</small>
+                  </button>
+                  <button class="quick-example" onclick="populateExample('这个数学推导我看不懂。能一步步解释这个公式吗？')">
+                    <span style="font-size: 1.2rem;">📐</span>
+                    <strong>数学推导</strong>
+                    <small>逐步讲解复杂公式</small>
+                  </button>
+                  <button class="quick-example" onclick="populateExample('论文中提到的实验设置是什么？为什么要这样设计？')">
+                    <span style="font-size: 1.2rem;">🔬</span>
+                    <strong>实验设计</strong>
+                    <small>理解研究方法</small>
+                  </button>
+                  <button class="quick-example" onclick="populateExample('这个结果的含义是什么？为什么这很重要？')">
+                    <span style="font-size: 1.2rem;">📊</span>
+                    <strong>结果解读</strong>
+                    <small>理解研究发现</small>
+                  </button>
+                </div>
+                
+                <p style="color: var(--text-faint); font-size: 0.9rem; margin-top: 2rem;">💡 提示：按 <kbd style="background: var(--accent-light); padding: 2px 6px; border-radius: 3px;">Ctrl+?</kbd> 查看所有快捷键</p>
+              </div>
+            </div>
           </div>
 
           <div class="composer">

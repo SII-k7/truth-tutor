@@ -1,5 +1,51 @@
 # Changelog
 
+## 1.0.9 - 2026-03-16
+
+### Added - P0: Knowledge Graph Integration
+- **Ontology Integration** (`src/ontology-integration.mjs`)
+  - LearnerProfile entity for cross-skill data sharing
+  - LearningGap entity tracking in knowledge graph
+  - Concept entity and prerequisite relationships
+  - Query interfaces for learner profiles and gaps
+  
+- **Cross-skill sharing**: Other skills can now access learner profiles via ontology
+
+### Added - P1: Multi-Model Diagnosis
+- **Multi-Model Diagnosis** (`src/multi-model-diagnosis.mjs`)
+  - Support for Claude, GPT, Gemini models
+  - Parallel diagnosis from multiple models
+  - Synthesized diagnosis with consensus gaps
+  - Model comparison and insights
+
+### Added - P1: Automation Workflows
+- **Automation Integration** (`src/automation-integration.mjs`)
+  - Workflow templates (daily report, weekly summary, monthly review)
+  - Auto-schedule study sessions
+  - Milestone celebration notifications
+  - Report generator for workflows
+
+### Added - Skill Improvements
+- Enhanced SKILL.md with trigger conditions and usage examples
+- CONTRIBUTING.md with project-specific guides
+
+---
+
+## 1.0.8 - 2026-03-16
+
+### Added
+- **Enhanced input validation**: 
+  - JSON parsing error handling with clear messages
+  - Field length limits (10k chars for long fields, 500 for topic/paper title)
+  - Enum validation for mode and strictness
+  - Numeric range validation for weeklyHours
+- **Skill definition improvements**: Added trigger conditions, usage examples, and clearer structure
+
+### Fixed
+- Port fallback fix (from 1.0.7)
+
+---
+
 ## 1.0.7 - 2026-03-16
 
 ### Fixed

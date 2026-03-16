@@ -1,0 +1,532 @@
+{
+  "count": 60,
+  "max": 60,
+  "startedAt": "2026-03-15T14:17:01.576Z",
+  "lastRunAt": "2026-03-16T00:09:01.084Z",
+  "status": "completed",
+  "cycles": [
+    {
+      "cycleNum": 1,
+      "timestamp": "2026-03-15T14:17:01.577Z",
+      "status": "success",
+      "task": {
+        "id": 1,
+        "name": "快速开始指南",
+        "phase": 1,
+        "priority": "high"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 2,
+      "timestamp": "2026-03-15T14:27:05.030Z",
+      "status": "success",
+      "task": {
+        "id": 2,
+        "name": "示例库",
+        "phase": 1,
+        "priority": "high"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 3,
+      "timestamp": "2026-03-15T14:37:06.067Z",
+      "status": "success",
+      "task": {
+        "id": 3,
+        "name": "键盘快捷键",
+        "phase": 1,
+        "priority": "high"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 4,
+      "timestamp": "2026-03-15T14:47:08.924Z",
+      "status": "success",
+      "task": {
+        "id": 4,
+        "name": "深色模式",
+        "phase": 1,
+        "priority": "high"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 5,
+      "timestamp": "2026-03-15T14:57:16.259Z",
+      "status": "success",
+      "task": {
+        "id": 5,
+        "name": "响应式设计",
+        "phase": 1,
+        "priority": "high"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 6,
+      "timestamp": "2026-03-15T15:07:26.024Z",
+      "status": "success",
+      "task": {
+        "id": 6,
+        "name": "输入提示",
+        "phase": 1,
+        "priority": "medium"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 7,
+      "timestamp": "2026-03-15T15:17:33.023Z",
+      "status": "success",
+      "task": {
+        "id": 7,
+        "name": "历史记录",
+        "phase": 1,
+        "priority": "medium"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 8,
+      "timestamp": "2026-03-15T15:27:40.972Z",
+      "status": "success",
+      "task": {
+        "id": 8,
+        "name": "导出功能",
+        "phase": 1,
+        "priority": "medium"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 9,
+      "timestamp": "2026-03-15T15:37:48.003Z",
+      "status": "success",
+      "task": {
+        "id": 9,
+        "name": "分享功能",
+        "phase": 1,
+        "priority": "medium"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 10,
+      "timestamp": "2026-03-15T15:47:55.562Z",
+      "status": "success",
+      "task": {
+        "id": 10,
+        "name": "进度指示",
+        "phase": 1,
+        "priority": "medium"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 11,
+      "timestamp": "2026-03-15T15:57:56.696Z",
+      "status": "success",
+      "task": {
+        "id": 11,
+        "name": "错误处理",
+        "phase": 1,
+        "priority": "high"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 12,
+      "timestamp": "2026-03-15T16:08:04.801Z",
+      "status": "success",
+      "task": {
+        "id": 12,
+        "name": "加载状态",
+        "phase": 1,
+        "priority": "medium"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 13,
+      "timestamp": "2026-03-15T16:18:11.955Z",
+      "status": "success",
+      "task": {
+        "id": 13,
+        "name": "搜索优化",
+        "phase": 1,
+        "priority": "medium"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 14,
+      "timestamp": "2026-03-15T16:28:21.540Z",
+      "status": "success",
+      "task": {
+        "id": 14,
+        "name": "标签系统",
+        "phase": 1,
+        "priority": "low"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 15,
+      "timestamp": "2026-03-15T16:38:28.536Z",
+      "status": "success",
+      "task": {
+        "id": 15,
+        "name": "收藏功能",
+        "phase": 1,
+        "priority": "low"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 16,
+      "timestamp": "2026-03-15T16:48:31.044Z",
+      "status": "success",
+      "task": {
+        "id": 16,
+        "name": "多语言支持",
+        "phase": 2,
+        "priority": "medium"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 17,
+      "timestamp": "2026-03-15T16:58:38.089Z",
+      "status": "success",
+      "task": {
+        "id": 17,
+        "name": "API 文档",
+        "phase": 2,
+        "priority": "high"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 18,
+      "timestamp": "2026-03-15T17:08:45.876Z",
+      "status": "success",
+      "task": {
+        "id": 18,
+        "name": "CLI 工具",
+        "phase": 2,
+        "priority": "medium"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 19,
+      "timestamp": "2026-03-15T17:18:46.988Z",
+      "status": "success",
+      "task": {
+        "id": 19,
+        "name": "批量诊断",
+        "phase": 2,
+        "priority": "low"
+      },
+      "testsPassed": true
+    },
+    {
+      "cycleNum": 20,
+      "timestamp": "2026-03-15T17:28:49.472Z",
+      "status": "success",
+      "task": {
+        "id": 20,
+        "name": "对比分析",
+        "phase": 2,
+        "priority": "medium"
+      },
+      "testsPassed": true
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    },
+    {
+      "status": "complete",
+      "message": "所有任务已完成"
+    }
+  ],
+  "completedTasks": [
+    {
+      "id": 1,
+      "name": "快速开始指南",
+      "phase": 1,
+      "priority": "high"
+    },
+    {
+      "id": 2,
+      "name": "示例库",
+      "phase": 1,
+      "priority": "high"
+    },
+    {
+      "id": 3,
+      "name": "键盘快捷键",
+      "phase": 1,
+      "priority": "high"
+    },
+    {
+      "id": 4,
+      "name": "深色模式",
+      "phase": 1,
+      "priority": "high"
+    },
+    {
+      "id": 5,
+      "name": "响应式设计",
+      "phase": 1,
+      "priority": "high"
+    },
+    {
+      "id": 6,
+      "name": "输入提示",
+      "phase": 1,
+      "priority": "medium"
+    },
+    {
+      "id": 7,
+      "name": "历史记录",
+      "phase": 1,
+      "priority": "medium"
+    },
+    {
+      "id": 8,
+      "name": "导出功能",
+      "phase": 1,
+      "priority": "medium"
+    },
+    {
+      "id": 9,
+      "name": "分享功能",
+      "phase": 1,
+      "priority": "medium"
+    },
+    {
+      "id": 10,
+      "name": "进度指示",
+      "phase": 1,
+      "priority": "medium"
+    },
+    {
+      "id": 11,
+      "name": "错误处理",
+      "phase": 1,
+      "priority": "high"
+    },
+    {
+      "id": 12,
+      "name": "加载状态",
+      "phase": 1,
+      "priority": "medium"
+    },
+    {
+      "id": 13,
+      "name": "搜索优化",
+      "phase": 1,
+      "priority": "medium"
+    },
+    {
+      "id": 14,
+      "name": "标签系统",
+      "phase": 1,
+      "priority": "low"
+    },
+    {
+      "id": 15,
+      "name": "收藏功能",
+      "phase": 1,
+      "priority": "low"
+    },
+    {
+      "id": 16,
+      "name": "多语言支持",
+      "phase": 2,
+      "priority": "medium"
+    },
+    {
+      "id": 17,
+      "name": "API 文档",
+      "phase": 2,
+      "priority": "high"
+    },
+    {
+      "id": 18,
+      "name": "CLI 工具",
+      "phase": 2,
+      "priority": "medium"
+    },
+    {
+      "id": 19,
+      "name": "批量诊断",
+      "phase": 2,
+      "priority": "low"
+    },
+    {
+      "id": 20,
+      "name": "对比分析",
+      "phase": 2,
+      "priority": "medium"
+    }
+  ],
+  "completedAt": "2026-03-16T00:09:01.084Z"
+}
