@@ -27,7 +27,7 @@ const MIME_TYPES = {
 export async function startWebServer({ host = '127.0.0.1', port = 3474, openBrowser = true } = {}) {
   const server = createServer(async (req, res) => {
     try {
-      const url = new URL(req.url || '/', `http://${host}:${port}`);
+      const url = new URL(req.url || '/', `http://${host}:${resolvedPort}`);
 
       if (req.method === 'GET' && url.pathname === '/api/info') {
         return sendJson(res, 200, await getInfo());
@@ -299,13 +299,27 @@ export async function startWebServer({ host = '127.0.0.1', port = 3474, openBrow
     }
   });
 
-  await new Promise((resolve, reject) => {
-    server.once('error', reject);
-    server.listen(port, host, resolve);
-  });
+  // Try to listen on the requested port, fallback to port 0 (auto-assign) if in use
+  let resolvedPort = port;
+  try {
+    await new Promise((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(port, host, resolve);
+    });
+  } catch (listenError) {
+    if (listenError.code === 'EADDRINUSE') {
+      console.warn(`Port ${port} is in use, trying to auto-assign an available port...`);
+      await new Promise((resolve, reject) => {
+        server.once('error', reject);
+        server.listen(0, host, resolve);
+      });
+    } else {
+      throw listenError;
+    }
+  }
 
   const address = server.address();
-  const resolvedPort = typeof address === 'object' && address ? address.port : port;
+  resolvedPort = typeof address === 'object' && address ? address.port : port;
   const appUrl = `http://${host}:${resolvedPort}`;
 
   if (openBrowser) {

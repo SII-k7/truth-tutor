@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.7 - 2026-03-16
+
+### Fixed
+- **Port fallback**: When port 3474 is already in use, the web server now automatically falls back to an available port instead of failing with EADDRINUSE error
+
+---
+
 ## 1.0.6 - 2026-03-13
 
 ### Added - Core Differentiation Features
