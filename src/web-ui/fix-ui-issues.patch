@@ -1,0 +1,69 @@
+--- a/app.js
++++ b/app.js
+@@ -916,11 +916,24 @@ function bindSegmentedGroup(group) {
+   const target = group.dataset.target;
+   const hiddenSelect = document.getElementById(target);
+ 
++  console.log('Binding segmented group:', target, 'buttons:', group.querySelectorAll('.seg-btn').length);
++
+   group.querySelectorAll('.seg-btn').forEach((button) => {
+     button.addEventListener('click', () => {
++      console.log('Button clicked:', button.dataset.value);
++      
++      // Visual feedback - add a flash effect
++      button.style.transform = 'scale(0.95)';
++      setTimeout(() => button.style.transform = 'scale(1)', 100);
++      
+       group.querySelectorAll('.seg-btn').forEach((node) => node.classList.remove('active'));
+       button.classList.add('active');
+       hiddenSelect.value = button.dataset.value;
++      
++      // Show toast notification
++      statusText.textContent = `已切换到: ${button.textContent}`;
++      statusText.style.color = 'var(--accent)';
++      setTimeout(() => statusText.style.color = '', 2000);
++      
+       hiddenSelect.dispatchEvent(new Event('change'));
+     });
+   });
+@@ -969,6 +982,8 @@ function handleSearchKeydown(event) {
+ 
+ async function runPaperSearch({ auto = false } = {}) {
+   const query = paperSearch.value.trim();
++  console.log('runPaperSearch called, query:', query, 'auto:', auto);
++  
+   if (!query) return;
+ 
+   const searchToken = ++state.lastSearchToken;
+@@ -976,11 +991,15 @@ async function runPaperSearch({ auto = false } = {}) {
+ 
+   try {
+     const { items } = await fetchJson(`/api/arxiv-search?q=${encodeURIComponent(query)}`);
++    console.log('Search API returned:', items?.length, 'items');
++    
+     if (searchToken !== state.lastSearchToken) return;
+ 
+     state.searchResults = items || [];
+     renderSearchResults();
+     statusText.textContent = items?.length ? `${items.length} result(s)` : 'no results';
++    
++    console.log('Search results rendered, display:', paperResults.style.display);
+ 
+     if (!auto && items?.length === 1) {
+       loadPaper(items[0]);
+@@ -993,6 +1012,8 @@ async function runPaperSearch({ auto = false } = {}) {
+ 
+ function renderSearchResults() {
+   if (!state.searchResults.length) {
++    console.log('No search results to render');
+     hideSearchResults();
+     return;
+   }
+@@ -1018,6 +1039,7 @@ function renderSearchResults() {
+   });
+ 
+   paperResults.style.display = 'block';
++  console.log('Search results displayed, HTML length:', paperResults.innerHTML.length);
+ }
+ 
+ function hideSearchResults() {

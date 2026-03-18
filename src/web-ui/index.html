@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Truth Tutor</title>
     <link rel="stylesheet" href="/styles.css" />
+    <script type="importmap">
+    {
+      "imports": {
+        "pdfjs-dist/build/pdf.mjs": "/pdfjs-dist/build/pdf.mjs"
+      }
+    }
+    </script>
   </head>
   <body>
     <div class="app-shell">
@@ -56,6 +63,7 @@
           <a href="/dashboard.html" style="padding:6px 12px;background:var(--surface);border-radius:8px;text-decoration:none;color:#10b981;font-size:12px;font-weight:600;">📊 Dashboard</a>
           <a href="/library.html" style="padding:6px 12px;background:var(--surface);border-radius:8px;text-decoration:none;color:#6366f1;font-size:12px;font-weight:600;">🎯 Drills</a>
           <a href="/compare.html" style="padding:6px 12px;background:var(--surface);border-radius:8px;text-decoration:none;color:#f5576c;font-size:12px;font-weight:600;">🎭 Compare</a>
+          <button id="tour-button" title="Take a tour of Truth Tutor" style="padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--accent);">🎓 Tour</button>
           <button id="dark-mode-toggle" title="切换深色模式 (Ctrl+D)" style="padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:14px;cursor:pointer;">🌙</button>
         </div>
 
@@ -93,15 +101,58 @@
       </header>
 
       <main class="workspace">
+        <!-- Sidebar for document outline -->
+        <aside class="sidebar" id="sidebar" role="complementary" aria-label="Document navigation">
+          <!-- Sidebar content will be injected by Sidebar.js -->
+        </aside>
+
         <section class="viewer-panel">
+          <!-- Section Navigator -->
+          <div id="section-navigator" class="section-navigator-container">
+            <!-- Section navigator will be injected by SectionNavigator.js -->
+          </div>
+
+          <!-- Progress Tracker -->
+          <div id="progress-tracker-container" class="progress-tracker-container">
+            <!-- Progress tracker will be injected by ProgressTracker.js -->
+          </div>
+
           <div id="paper-caption" class="paper-caption">No paper loaded</div>
-          <iframe id="pdf-frame" title="Paper PDF preview"></iframe>
+          <div id="pdf-container" style="position: relative; overflow: auto; height: 100%;">
+            <!-- PDF canvas will be inserted here by PDFRenderer -->
+          </div>
           <div id="pdf-empty" class="empty-view visible">
             <div class="empty-copy">搜索上方论文标题，或在右侧直接贴 arXiv / PDF 链接。</div>
+          </div>
+          <!-- PDF controls -->
+          <div id="pdf-controls" style="display: none; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 8px; z-index: 20;">
+            <button id="prev-page" style="margin: 0 4px; padding: 4px 12px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">◀ Prev</button>
+            <span id="page-info" style="color: white; margin: 0 12px; font-size: 14px;">Page 1 / 1</span>
+            <button id="next-page" style="margin: 0 4px; padding: 4px 12px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">Next ▶</button>
+            <button id="zoom-out" style="margin: 0 4px 0 16px; padding: 4px 12px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer;">-</button>
+            <span id="zoom-level" style="color: white; margin: 0 8px; font-size: 14px;">100%</span>
+            <button id="zoom-in" style="margin: 0 4px; padding: 4px 12px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer;">+</button>
+            <button id="fit-width" style="margin: 0 4px; padding: 4px 12px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer;" title="Fit to width">↔</button>
+            <button id="fit-page" style="margin: 0 4px; padding: 4px 12px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer;" title="Fit to page">⤢</button>
+            <button id="rotate-left" style="margin: 0 4px; padding: 4px 12px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer;" title="Rotate left">↶</button>
+            <button id="analyze-paper-btn" style="margin: 0 4px 0 16px; padding: 4px 16px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">🤖 Analyze Paper</button>
+          </div>
+          
+          <!-- Analysis progress -->
+          <div id="analysis-progress" style="display: none; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); padding: 16px 24px; border-radius: 8px; z-index: 30; min-width: 400px;">
+            <div id="analysis-status" style="color: white; margin-bottom: 8px; font-size: 14px;">Initializing...</div>
+            <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+              <div id="analysis-progress-bar" style="background: #10b981; height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
           </div>
         </section>
 
         <section class="chat-panel">
+          <!-- Annotation Filter -->
+          <div id="annotation-filter-container" class="annotation-filter-container">
+            <!-- Annotation filter will be injected by AnnotationFilter.js -->
+          </div>
+
           <div id="chat-thread" class="chat-thread">
             <div id="empty-thread" class="empty-thread">
               <div style="text-align: center; padding: 2rem;">

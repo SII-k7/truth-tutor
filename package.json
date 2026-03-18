@@ -31,5 +31,11 @@
   "engines": {
     "node": ">=20"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "pdf-parse": "^2.4.5",
+    "pdfjs-dist": "^5.5.207",
+    "sqlite3": "^6.0.1",
+    "ws": "^8.19.0"
+  }
 }

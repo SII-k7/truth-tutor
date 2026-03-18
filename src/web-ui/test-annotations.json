@@ -1,0 +1,47 @@
+[
+  {
+    "id": "anno-1",
+    "page": 1,
+    "x": 0.15,
+    "y": 0.25,
+    "type": "translation",
+    "content": "Transformer: A neural network architecture that relies entirely on attention mechanisms, dispensing with recurrence and convolutions.",
+    "reference": "Section 1: Introduction"
+  },
+  {
+    "id": "anno-2",
+    "page": 1,
+    "x": 0.45,
+    "y": 0.35,
+    "type": "explanation",
+    "content": "Self-attention allows the model to weigh the importance of different words in a sentence when encoding each word. This enables capturing long-range dependencies more effectively than RNNs.",
+    "reference": "Section 3.2: Attention Mechanism"
+  },
+  {
+    "id": "anno-3",
+    "page": 1,
+    "x": 0.75,
+    "y": 0.45,
+    "type": "concept",
+    "content": "Multi-head attention: Running multiple attention mechanisms in parallel, each learning different aspects of the relationships between words.",
+    "reference": "Section 3.2.2: Multi-Head Attention"
+  },
+  {
+    "id": "anno-4",
+    "page": 1,
+    "x": 0.30,
+    "y": 0.60,
+    "type": "translation",
+    "content": "Positional Encoding: Since Transformers don't have recurrence, positional encodings are added to give the model information about the position of tokens in the sequence.",
+    "reference": "Section 3.5: Positional Encoding"
+  },
+  {
+    "id": "anno-5",
+    "page": 1,
+    "x": 0.60,
+    "y": 0.75,
+    "type": "explanation",
+    "content": "The encoder-decoder structure: The encoder processes the input sequence, and the decoder generates the output sequence, with attention mechanisms connecting them.",
+    "reference": "Section 3.1: Model Architecture"
+  }
+]

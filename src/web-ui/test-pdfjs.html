@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF.js Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: sans-serif;
+      background: #f5f5f5;
+    }
+    #container {
+      position: relative;
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    #controls {
+      padding: 10px;
+      background: #333;
+      color: white;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    button {
+      padding: 5px 15px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    #status {
+      margin-left: auto;
+      font-size: 14px;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; r: 8; }
+      50% { opacity: 0; r: 14; }
+    }
+    .annotation-pulse {
+      animation: pulse 2s ease-out infinite;
+    }
+  </style>
+</head>
+<body>
+  <h1>PDF.js + Annotation Layer Test</h1>
+  <div id="container">
+    <div id="controls">
+      <button id="load-btn">Load Test PDF</button>
+      <button id="prev-btn">Previous</button>
+      <button id="next-btn">Next</button>
+      <button id="zoom-in-btn">Zoom In</button>
+      <button id="zoom-out-btn">Zoom Out</button>
+      <span id="status">Ready</span>
+    </div>
+    <div id="pdf-container" style="position: relative; overflow: auto; max-height: 800px;"></div>
+  </div>
+
+  <script type="module">
+    import { PDFRenderer } from './components/PDFRenderer.js';
+    import { AnnotationLayer } from './components/AnnotationLayer.js';
+    import { CoordinateMapper } from './utils/coordinateMapper.js';
+
+    const container = document.getElementById('pdf-container');
+    const status = document.getElementById('status');
+    
+    // Initialize components
+    const pdfRenderer = new PDFRenderer(container);
+    const annotationLayer = new AnnotationLayer(container);
+    const coordinateMapper = new CoordinateMapper();
+
+    // Test annotations
+    const testAnnotations = [
+      {
+        id: 'anno-1',
+        page: 1,
+        x: 0.2,
+        y: 0.3,
+        type: 'translation',
+        content: 'This is a translation annotation. Hover to see this tooltip!',
+        reference: 'Section 1'
+      },
+      {
+        id: 'anno-2',
+        page: 1,
+        x: 0.5,
+        y: 0.5,
+        type: 'explanation',
+        content: 'This is an explanation annotation with more detailed information about the concept.',
+        reference: 'Section 2'
+      },
+      {
+        id: 'anno-3',
+        page: 1,
+        x: 0.8,
+        y: 0.7,
+        type: 'concept',
+        content: 'This is a concept annotation highlighting an important idea.',
+        reference: 'Section 3'
+      }
+    ];
+
+    // Event listeners
+    pdfRenderer.on('documentLoaded', (data) => {
+      status.textContent = `Loaded: ${data.numPages} pages`;
+      renderAnnotations();
+    });
+
+    pdfRenderer.on('pageChange', (data) => {
+      status.textContent = `Page ${data.pageNum} / ${data.totalPages}`;
+      coordinateMapper.updateViewport(data.viewport, pdfRenderer.canvas);
+      annotationLayer.updateDimensions(data.viewport.width, data.viewport.height);
+      renderAnnotations();
+    });
+
+    function renderAnnotations() {
+      annotationLayer.clear();
+      const currentPage = pdfRenderer.currentPage;
+      const pageAnnotations = testAnnotations.filter(a => a.page === currentPage);
+      
+      pageAnnotations.forEach(anno => {
+        const coords = coordinateMapper.pdfToCanvas(anno.x, anno.y);
+        annotationLayer.addAnnotation({
+          ...anno,
+          x: coords.x,
+          y: coords.y
+        });
+      });
+    }
+
+    // Button handlers
+    document.getElementById('load-btn').addEventListener('click', async () => {
+      try {
+        status.textContent = 'Loading PDF...';
+        // Use the test PDF we downloaded
+        await pdfRenderer.loadDocument('/test-paper.pdf');
+      } catch (error) {
+        status.textContent = 'Error: ' + error.message;
+        console.error(error);
+      }
+    });
+
+    document.getElementById('prev-btn').addEventListener('click', () => {
+      pdfRenderer.prevPage();
+    });
+
+    document.getElementById('next-btn').addEventListener('click', () => {
+      pdfRenderer.nextPage();
+    });
+
+    document.getElementById('zoom-in-btn').addEventListener('click', () => {
+      pdfRenderer.setZoom(pdfRenderer.zoom + 0.25);
+    });
+
+    document.getElementById('zoom-out-btn').addEventListener('click', () => {
+      pdfRenderer.setZoom(pdfRenderer.zoom - 0.25);
+    });
+
+    console.log('Test page initialized. Click "Load Test PDF" to start.');
+  </script>
+</body>
+</html>

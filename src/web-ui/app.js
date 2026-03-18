@@ -1,3 +1,20 @@
+// Import PDF.js components
+import { PDFRenderer } from './components/PDFRenderer.js';
+import { AnnotationLayer } from './components/AnnotationLayer.js';
+import { CoordinateMapper } from './utils/coordinateMapper.js';
+
+// Import Week 3 Navigation & UX components
+import { Sidebar } from './components/Sidebar.js';
+import { ProgressTracker } from './components/ProgressTracker.js';
+import { SectionNavigator } from './components/SectionNavigator.js';
+import { AnnotationFilter } from './components/AnnotationFilter.js';
+import { OnboardingTour } from './components/OnboardingTour.js';
+import { KeyboardShortcuts } from './components/KeyboardShortcuts.js';
+
+// Import Vibero-style components
+import { ViberoAnnotationLayer } from './components/AnnotationLayer.vibero.js';
+import { ViberoSectionNavigator } from './components/SectionNavigator.vibero.js';
+
 const fields = [
   'mode',
   'strictness',
@@ -28,6 +45,21 @@ const state = {
   drills: [],
   profile: null,
   paperEvidenceIndex: {},
+  pdfRenderer: null,
+  annotationLayer: null,
+  coordinateMapper: null,
+  currentPdfUrl: null,
+  // Week 3 components
+  sidebar: null,
+  progressTracker: null,
+  sectionNavigator: null,
+  annotationFilter: null,
+  onboardingTour: null,
+  keyboardShortcuts: null,
+  // Vibero components
+  viberoAnnotationLayer: null,
+  viberoSectionNavigator: null,
+  viberoMode: false, // Toggle between normal and Vibero immersive mode
 };
 
 const elements = Object.fromEntries(fields.map((id) => [id, document.getElementById(id)]));
@@ -35,14 +67,18 @@ const chatThread = document.getElementById('chat-thread');
 const emptyThread = document.getElementById('empty-thread');
 const statusText = document.getElementById('status-text');
 const runButton = document.getElementById('run-diagnosis');
-const pdfFrame = document.getElementById('pdf-frame');
+const pdfContainer = document.getElementById('pdf-container');
 const pdfEmpty = document.getElementById('pdf-empty');
+const pdfControls = document.getElementById('pdf-controls');
 const paperCaption = document.getElementById('paper-caption');
 const paperSearch = document.getElementById('paper-search');
 const paperResults = document.getElementById('paper-results');
 const mascot = document.getElementById('ai-mascot');
 const mascotThinking = document.getElementById('mascot-thinking');
 const darkModeToggle = document.getElementById('dark-mode-toggle');
+
+
+// Paper search functionality removed - using runPaperSearch instead (see bindEvents function)
 
 init().catch(showError);
 bindEvents();
@@ -52,6 +88,13 @@ async function init() {
   document.querySelectorAll('[data-target]').forEach(bindSegmentedGroup);
   statusText.textContent = `${info.api.model || 'model'} · ready`;
   seedConversation();
+  
+  // Initialize PDF.js components
+  initPDFComponents();
+  
+  // Initialize Week 3 Navigation & UX components
+  initNavigationComponents();
+  
   updateViewerFromComposer();
   
   // Load learning profile and drills on startup
@@ -60,6 +103,700 @@ async function init() {
   
   // Initialize dark mode
   initDarkMode();
+  
+  // Initialize Vibero mode
+  initViberoMode();
+  
+  // Initialize WebSocket connection
+  connectWebSocket();
+  
+  // Bind analyze button
+  const analyzeBtn = document.getElementById('analyze-paper-btn');
+  if (analyzeBtn) {
+    analyzeBtn.addEventListener('click', analyzePaper);
+  }
+  
+  // Bind tour button
+  const tourBtn = document.getElementById('tour-button');
+  if (tourBtn) {
+    tourBtn.addEventListener('click', () => {
+      if (state.onboardingTour) {
+        state.onboardingTour.start();
+      }
+    });
+  }
+}
+
+function initPDFComponents() {
+  // Initialize PDFRenderer
+  state.pdfRenderer = new PDFRenderer(pdfContainer);
+  
+  // Initialize AnnotationLayer (normal mode)
+  state.annotationLayer = new AnnotationLayer(pdfContainer);
+  
+  // Initialize ViberoAnnotationLayer (Vibero mode)
+  state.viberoAnnotationLayer = new ViberoAnnotationLayer(pdfContainer, {
+    enableTranslation: true,
+    enableAIExplanation: true,
+    locale: 'zh-CN'
+  });
+  
+  // Initialize CoordinateMapper
+  state.coordinateMapper = new CoordinateMapper();
+  
+  // Listen to PDF events
+  state.pdfRenderer.on('documentLoaded', (data) => {
+    console.log('PDF loaded:', data);
+    pdfControls.style.display = 'flex';
+    updatePageInfo();
+    
+    // Load test annotations
+    loadTestAnnotations();
+    
+    // Initialize progress tracker for this document
+    if (state.progressTracker && elements.paperId.value) {
+      state.progressTracker.initialize(elements.paperId.value, data.numPages);
+    }
+    
+    // Load document outline (mock data for now)
+    loadDocumentOutline(data.numPages);
+  });
+  
+  state.pdfRenderer.on('pageChange', (data) => {
+    console.log('Page changed:', data);
+    updatePageInfo();
+    
+    // Update coordinate mapper
+    state.coordinateMapper.updateViewport(
+      data.viewport,
+      state.pdfRenderer.canvas
+    );
+    
+    // Update annotation layer dimensions
+    state.annotationLayer.updateDimensions(
+      data.viewport.width,
+      data.viewport.height
+    );
+    
+    // Re-render annotations for current page
+    renderAnnotationsForPage(data.pageNum);
+    
+    // Update progress tracker
+    if (state.progressTracker) {
+      state.progressTracker.updateProgress(data.pageNum);
+    }
+    
+    // Update sidebar progress indicator
+    if (state.sidebar) {
+      state.sidebar.updateProgress({ page: data.pageNum });
+    }
+  });
+  
+  // Bind PDF control buttons
+  document.getElementById('prev-page').addEventListener('click', () => {
+    state.pdfRenderer.prevPage();
+  });
+  
+  document.getElementById('next-page').addEventListener('click', () => {
+    state.pdfRenderer.nextPage();
+  });
+  
+  document.getElementById('zoom-in').addEventListener('click', () => {
+    const newZoom = state.pdfRenderer.zoom + 0.25;
+    state.pdfRenderer.setZoom(newZoom);
+    updateZoomLevel();
+  });
+  
+  document.getElementById('zoom-out').addEventListener('click', () => {
+    const newZoom = state.pdfRenderer.zoom - 0.25;
+    state.pdfRenderer.setZoom(newZoom);
+    updateZoomLevel();
+  });
+  
+  // Bind new PDF controls
+  const fitWidthBtn = document.getElementById('fit-width');
+  const fitPageBtn = document.getElementById('fit-page');
+  const rotateLeftBtn = document.getElementById('rotate-left');
+  
+  if (fitWidthBtn) {
+    fitWidthBtn.addEventListener('click', () => {
+      state.pdfRenderer.setZoom(1.0);
+      updateZoomLevel();
+    });
+  }
+  
+  if (fitPageBtn) {
+    fitPageBtn.addEventListener('click', () => {
+      state.pdfRenderer.setZoom(0.8);
+      updateZoomLevel();
+    });
+  }
+  
+  if (rotateLeftBtn) {
+    rotateLeftBtn.addEventListener('click', () => {
+      // Rotation functionality would be implemented in PDFRenderer
+      console.log('Rotate left clicked');
+    });
+  }
+}
+
+function initNavigationComponents() {
+  // Initialize Sidebar
+  const sidebarContainer = document.getElementById('sidebar');
+  if (sidebarContainer) {
+    state.sidebar = new Sidebar(sidebarContainer);
+    
+    // Listen to sidebar events
+    state.sidebar.on('sectionClick', (data) => {
+      if (state.pdfRenderer && data.pageNum) {
+        state.pdfRenderer.goToPage(data.pageNum);
+      }
+    });
+    
+    state.sidebar.on('collapseToggle', (data) => {
+      console.log('Sidebar collapsed:', data.collapsed);
+    });
+  }
+  
+  // Initialize Progress Tracker
+  state.progressTracker = new ProgressTracker();
+  const progressContainer = document.getElementById('progress-tracker-container');
+  if (progressContainer) {
+    const progressBar = state.progressTracker.createProgressBar();
+    progressContainer.appendChild(progressBar);
+    
+    // Listen to progress events
+    state.progressTracker.on('progressUpdate', (progress) => {
+      console.log('Progress updated:', progress);
+    });
+  }
+  
+  // Initialize Section Navigator
+  const navigatorContainer = document.getElementById('section-navigator');
+  if (navigatorContainer) {
+    state.sectionNavigator = new SectionNavigator(navigatorContainer);
+    
+    // Listen to navigation events
+    state.sectionNavigator.on('sectionNavigate', (data) => {
+      if (state.pdfRenderer && data.page) {
+        state.pdfRenderer.goToPage(data.page);
+      }
+    });
+  }
+  
+  // Initialize Vibero Section Navigator (hidden by default)
+  state.viberoSectionNavigator = new ViberoSectionNavigator(document.body, {
+    position: 'both',
+    showMiniMap: true,
+    autoHighlight: true,
+    smoothScroll: true
+  });
+  
+  // Listen to Vibero navigation events
+  state.viberoSectionNavigator.on('sectionNavigate', (data) => {
+    if (state.pdfRenderer && data.page) {
+      state.pdfRenderer.goToPage(data.page);
+    }
+  });
+  
+  // Hide Vibero navigator initially
+  if (state.viberoSectionNavigator.leftPanel) {
+    state.viberoSectionNavigator.leftPanel.style.display = 'none';
+  }
+  if (state.viberoSectionNavigator.rightPanel) {
+    state.viberoSectionNavigator.rightPanel.style.display = 'none';
+  }
+  if (state.viberoSectionNavigator.floatingControls) {
+    state.viberoSectionNavigator.floatingControls.style.display = 'none';
+  }
+  
+  // Initialize Annotation Filter
+  const filterContainer = document.getElementById('annotation-filter-container');
+  if (filterContainer) {
+    state.annotationFilter = new AnnotationFilter(filterContainer);
+    
+    // Listen to filter events
+    state.annotationFilter.on('filterChange', (filters) => {
+      console.log('Filters changed:', filters);
+      // Re-render annotations with filters
+      if (state.annotationLayer) {
+        applyAnnotationFilters(filters);
+      }
+    });
+    
+    state.annotationFilter.on('annotationClick', (annotation) => {
+      console.log('Annotation clicked:', annotation);
+      if (state.pdfRenderer && annotation.page) {
+        state.pdfRenderer.goToPage(annotation.page);
+      }
+    });
+  }
+  
+  // Initialize Onboarding Tour
+  state.onboardingTour = new OnboardingTour();
+  
+  // Initialize Keyboard Shortcuts
+  state.keyboardShortcuts = new KeyboardShortcuts();
+  
+  // Bind keyboard shortcut events
+  state.keyboardShortcuts.on('toggleSidebar', () => {
+    if (state.sidebar) {
+      state.sidebar.toggleCollapse();
+    }
+  });
+  
+  state.keyboardShortcuts.on('nextSection', () => {
+    if (state.sectionNavigator) {
+      state.sectionNavigator.navigateNext();
+    }
+  });
+  
+  state.keyboardShortcuts.on('previousSection', () => {
+    if (state.sectionNavigator) {
+      state.sectionNavigator.navigatePrevious();
+    }
+  });
+  
+  state.keyboardShortcuts.on('searchDocument', () => {
+    // Focus on search input or open search modal
+    console.log('Search document');
+  });
+  
+  state.keyboardShortcuts.on('toggleAnnotations', () => {
+    if (state.annotationFilter) {
+      state.annotationFilter.toggleAll();
+    }
+  });
+  
+  state.keyboardShortcuts.on('showHelp', () => {
+    if (state.keyboardShortcuts) {
+      state.keyboardShortcuts.showHelp();
+    }
+  });
+  
+  state.keyboardShortcuts.on('toggleDarkMode', () => {
+    toggleDarkMode();
+  });
+  
+  state.keyboardShortcuts.on('previousPage', () => {
+    if (state.pdfRenderer) {
+      state.pdfRenderer.prevPage();
+    }
+  });
+  
+  state.keyboardShortcuts.on('nextPage', () => {
+    if (state.pdfRenderer) {
+      state.pdfRenderer.nextPage();
+    }
+  });
+  
+  state.keyboardShortcuts.on('firstPage', () => {
+    if (state.pdfRenderer) {
+      state.pdfRenderer.goToPage(1);
+    }
+  });
+  
+  state.keyboardShortcuts.on('lastPage', () => {
+    if (state.pdfRenderer && state.pdfRenderer.pdfDoc) {
+      state.pdfRenderer.goToPage(state.pdfRenderer.pdfDoc.numPages);
+    }
+  });
+  
+  state.keyboardShortcuts.on('zoomIn', () => {
+    if (state.pdfRenderer) {
+      const newZoom = state.pdfRenderer.zoom + 0.25;
+      state.pdfRenderer.setZoom(newZoom);
+      updateZoomLevel();
+    }
+  });
+  
+  state.keyboardShortcuts.on('zoomOut', () => {
+    if (state.pdfRenderer) {
+      const newZoom = state.pdfRenderer.zoom - 0.25;
+      state.pdfRenderer.setZoom(newZoom);
+      updateZoomLevel();
+    }
+  });
+  
+  state.keyboardShortcuts.on('resetZoom', () => {
+    if (state.pdfRenderer) {
+      state.pdfRenderer.setZoom(1.0);
+      updateZoomLevel();
+    }
+  });
+  
+  state.keyboardShortcuts.on('closeModal', () => {
+    // Close any open modals
+    const modals = document.querySelectorAll('.keyboard-shortcuts-modal, .onboarding-overlay');
+    modals.forEach(modal => modal.remove());
+  });
+}
+
+function applyAnnotationFilters(filters) {
+  // Apply filters to annotation layer
+  if (!state.annotations) return;
+  
+  const filtered = state.annotations.filter(ann => {
+    return filters[ann.type] !== false;
+  });
+  
+  // Re-render annotations
+  if (state.pdfRenderer) {
+    renderAnnotationsForPage(state.pdfRenderer.currentPage, filtered);
+  }
+}
+
+function updatePageInfo() {
+  const pageInfo = document.getElementById('page-info');
+  if (state.pdfRenderer && state.pdfRenderer.pdfDoc) {
+    pageInfo.textContent = `Page ${state.pdfRenderer.currentPage} / ${state.pdfRenderer.pdfDoc.numPages}`;
+  }
+}
+
+function updateZoomLevel() {
+  const zoomLevel = document.getElementById('zoom-level');
+  if (state.pdfRenderer) {
+    zoomLevel.textContent = `${Math.round(state.pdfRenderer.zoom * 100)}%`;
+  }
+}
+
+// loadTestAnnotations function moved to line 710 to avoid duplicate declaration
+
+function loadDocumentOutline(numPages) {
+  // Generate mock outline based on paper structure
+  // In production, this would come from PDF.js outline or backend API
+  const outline = generateMockOutline(numPages);
+  
+  // Update sidebar with outline
+  if (state.sidebar) {
+    state.sidebar.renderOutline(outline);
+  }
+  
+  // Update section navigator with sections
+  if (state.sectionNavigator) {
+    state.sectionNavigator.setSections(outline);
+  }
+  
+  // Update Vibero section navigator with sections
+  if (state.viberoSectionNavigator) {
+    state.viberoSectionNavigator.setSections(outline);
+  }
+}
+
+function generateMockOutline(numPages) {
+  // Generate a realistic paper outline
+  const sections = [
+    {
+      id: 'abstract',
+      title: 'Abstract',
+      page: 1,
+      type: 'section',
+      children: []
+    },
+    {
+      id: 'intro',
+      title: '1. Introduction',
+      page: 1,
+      type: 'section',
+      children: [
+        { id: 'intro-1', title: '1.1 Background', page: 2, type: 'subsection' },
+        { id: 'intro-2', title: '1.2 Motivation', page: 2, type: 'subsection' }
+      ]
+    },
+    {
+      id: 'related',
+      title: '2. Related Work',
+      page: 3,
+      type: 'section',
+      children: []
+    },
+    {
+      id: 'method',
+      title: '3. Methodology',
+      page: Math.ceil(numPages * 0.3),
+      type: 'section',
+      children: [
+        { id: 'method-1', title: '3.1 Architecture', page: Math.ceil(numPages * 0.35), type: 'subsection' },
+        { id: 'method-2', title: '3.2 Training', page: Math.ceil(numPages * 0.4), type: 'subsection' }
+      ]
+    },
+    {
+      id: 'experiments',
+      title: '4. Experiments',
+      page: Math.ceil(numPages * 0.5),
+      type: 'section',
+      children: [
+        { id: 'exp-1', title: '4.1 Setup', page: Math.ceil(numPages * 0.55), type: 'subsection' },
+        { id: 'exp-2', title: '4.2 Results', page: Math.ceil(numPages * 0.6), type: 'subsection' }
+      ]
+    },
+    {
+      id: 'discussion',
+      title: '5. Discussion',
+      page: Math.ceil(numPages * 0.75),
+      type: 'section',
+      children: []
+    },
+    {
+      id: 'conclusion',
+      title: '6. Conclusion',
+      page: Math.ceil(numPages * 0.85),
+      type: 'section',
+      children: []
+    },
+    {
+      id: 'references',
+      title: 'References',
+      page: Math.ceil(numPages * 0.9),
+      type: 'section',
+      children: []
+    }
+  ];
+  
+  return sections;
+}
+
+// WebSocket connection for real-time analysis updates
+let ws = null;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+
+function connectWebSocket() {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${protocol}//${window.location.host}/ws`;
+  
+  ws = new WebSocket(wsUrl);
+  
+  ws.onopen = () => {
+    console.log('WebSocket connected');
+    reconnectAttempts = 0;
+    updateAnalysisStatus('Connected', 'success');
+  };
+  
+  ws.onmessage = (event) => {
+    try {
+      const message = JSON.parse(event.data);
+      handleWebSocketMessage(message);
+    } catch (error) {
+      console.error('Error parsing WebSocket message:', error);
+    }
+  };
+  
+  ws.onerror = (error) => {
+    console.error('WebSocket error:', error);
+    updateAnalysisStatus('Connection error', 'error');
+  };
+  
+  ws.onclose = () => {
+    console.log('WebSocket disconnected');
+    ws = null;
+    
+    // Attempt to reconnect
+    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+      reconnectAttempts++;
+      setTimeout(() => {
+        console.log(`Reconnecting... (attempt ${reconnectAttempts})`);
+        connectWebSocket();
+      }, 2000 * reconnectAttempts);
+    }
+  };
+}
+
+function handleWebSocketMessage(message) {
+  const { type } = message;
+  
+  switch (type) {
+    case 'connected':
+      console.log('WebSocket ready');
+      break;
+      
+    case 'analysis-started':
+      updateAnalysisStatus('Analysis started...', 'info');
+      showAnalysisProgress(true);
+      break;
+      
+    case 'progress':
+      handleProgressUpdate(message);
+      break;
+      
+    case 'analysis-complete':
+      handleAnalysisComplete(message);
+      break;
+      
+    case 'error':
+      updateAnalysisStatus(`Error: ${message.error}`, 'error');
+      showAnalysisProgress(false);
+      break;
+      
+    default:
+      console.log('Unknown message type:', type);
+  }
+}
+
+function handleProgressUpdate(message) {
+  const { stage, progress, message: msg, annotation } = message;
+  
+  updateAnalysisStatus(`${stage}: ${msg}`, 'info');
+  updateProgressBar(progress);
+  
+  // If an annotation was generated, add it to the display
+  if (annotation) {
+    addAnnotationToDisplay(annotation);
+  }
+}
+
+function handleAnalysisComplete(message) {
+  const { result } = message;
+  updateAnalysisStatus('Analysis complete!', 'success');
+  updateProgressBar(100);
+  
+  setTimeout(() => {
+    showAnalysisProgress(false);
+  }, 2000);
+  
+  // Load annotations from API
+  if (result && result.paperId) {
+    loadAnnotationsForPaper(result.paperId);
+  }
+}
+
+function updateAnalysisStatus(message, type = 'info') {
+  const statusEl = document.getElementById('analysis-status');
+  if (statusEl) {
+    statusEl.textContent = message;
+    statusEl.className = `status-${type}`;
+  }
+}
+
+function updateProgressBar(progress) {
+  const progressBar = document.getElementById('analysis-progress-bar');
+  if (progressBar) {
+    progressBar.style.width = `${progress}%`;
+  }
+}
+
+function showAnalysisProgress(show) {
+  const progressContainer = document.getElementById('analysis-progress');
+  if (progressContainer) {
+    progressContainer.style.display = show ? 'block' : 'none';
+  }
+}
+
+function addAnnotationToDisplay(annotation) {
+  if (!state.annotations) {
+    state.annotations = [];
+  }
+  
+  state.annotations.push(annotation);
+  
+  // If annotation is for current page, render it
+  if (annotation.position && annotation.position.page === state.pdfRenderer.currentPage) {
+    renderAnnotationsForPage(state.pdfRenderer.currentPage);
+  }
+}
+
+async function loadAnnotationsForPaper(paperId) {
+  try {
+    const response = await fetch(`/api/papers/${paperId}/annotations`);
+    const data = await response.json();
+    
+    state.annotations = data.annotations || [];
+    renderAnnotationsForPage(state.pdfRenderer.currentPage);
+    
+    console.log(`Loaded ${state.annotations.length} annotations`);
+  } catch (error) {
+    console.error('Failed to load annotations:', error);
+  }
+}
+
+// Analyze paper button handler
+async function analyzePaper() {
+  if (!state.currentPdfUrl) {
+    alert('Please load a PDF first');
+    return;
+  }
+  
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    alert('WebSocket not connected. Connecting...');
+    connectWebSocket();
+    setTimeout(analyzePaper, 2000);
+    return;
+  }
+  
+  const pdfPath = state.currentPdfUrl;
+  
+  // Send analyze request via WebSocket
+  ws.send(JSON.stringify({
+    action: 'analyze',
+    payload: {
+      pdfPath,
+      annotationTypes: ['translation', 'explanation', 'concept'],
+      language: 'Chinese',
+      batchSize: 5,
+      maxParagraphs: 10 // Limit for testing
+    }
+  }));
+  
+  showAnalysisProgress(true);
+  updateAnalysisStatus('Starting analysis...', 'info');
+}
+
+async function loadTestAnnotations() {
+  try {
+    const response = await fetch('/test-annotations.json');
+    const annotations = await response.json();
+    
+    // Store annotations in state
+    state.testAnnotations = annotations;
+    
+    // Render annotations for current page
+    renderAnnotationsForPage(state.pdfRenderer.currentPage);
+  } catch (error) {
+    console.log('No test annotations found or error loading:', error);
+  }
+}
+
+function renderAnnotationsForPage(pageNum) {
+  if (!state.testAnnotations) return;
+  
+  // Clear existing annotations from both layers
+  state.annotationLayer.clear();
+  if (state.viberoAnnotationLayer) {
+    state.viberoAnnotationLayer.clear();
+  }
+  
+  // Filter annotations for current page
+  const pageAnnotations = state.testAnnotations.filter(anno => anno.page === pageNum);
+  
+  // Choose which layer to use based on current mode
+  const activeLayer = state.viberoMode ? state.viberoAnnotationLayer : state.annotationLayer;
+  
+  // Convert PDF coordinates to canvas coordinates and add to layer
+  pageAnnotations.forEach(anno => {
+    const canvasCoords = state.coordinateMapper.pdfToCanvas(anno.x, anno.y);
+    
+    if (state.viberoMode) {
+      // Use Vibero annotation layer with enhanced data
+      activeLayer.addAnnotation({
+        id: anno.id || `anno-${Date.now()}-${Math.random()}`,
+        x: canvasCoords.x,
+        y: canvasCoords.y,
+        type: anno.type || 'explanation',
+        content: anno.content || anno.text || '',
+        translation: anno.translation || null,
+        aiExplanation: anno.aiExplanation || null,
+        page: pageNum,
+        reference: anno.reference || null
+      });
+    } else {
+      // Use normal annotation layer
+      activeLayer.addAnnotation({
+        ...anno,
+        x: canvasCoords.x,
+        y: canvasCoords.y
+      });
+    }
+  });
 }
 
 async function loadProfile() {
@@ -123,9 +860,17 @@ function bindEvents() {
       event.preventDefault();
       toggleDarkMode();
     }
+    // Ctrl/Cmd + V toggles Vibero mode
+    if ((event.ctrlKey || event.metaKey) && (event.key === 'v' || event.key === 'V')) {
+      event.preventDefault();
+      toggleViberoMode();
+    }
   });
 
   bindMascotInteractions();
+  
+  // Ensure segmented groups are bound (may already be bound in init)
+  document.querySelectorAll('[data-target]').forEach(bindSegmentedGroup);
 }
 
 function bindMascotInteractions() {
@@ -176,11 +921,33 @@ function bindSegmentedGroup(group) {
   const hiddenSelect = document.getElementById(target);
 
   group.querySelectorAll('.seg-btn').forEach((button) => {
-    button.addEventListener('click', () => {
+    button.addEventListener('click', (e) => {
+      console.log('🔘 Button clicked:', button.dataset.value, 'target:', target);
+      
+      // Visual feedback
+      button.style.transform = 'scale(0.95)';
+      setTimeout(() => { button.style.transform = 'scale(1)'; }, 100);
+      
+      // Update active state
       group.querySelectorAll('.seg-btn').forEach((node) => node.classList.remove('active'));
       button.classList.add('active');
-      hiddenSelect.value = button.dataset.value;
-      hiddenSelect.dispatchEvent(new Event('change'));
+      
+      // Update hidden select
+      if (hiddenSelect) {
+        hiddenSelect.value = button.dataset.value;
+        hiddenSelect.dispatchEvent(new Event('change'));
+      }
+      
+      // Show feedback in status
+      if (typeof statusText !== 'undefined' && statusText) {
+        const oldText = statusText.textContent;
+        statusText.textContent = '✓ 已切换: ' + button.textContent;
+        statusText.style.color = '#10b981';
+        setTimeout(() => {
+          statusText.textContent = oldText;
+          statusText.style.color = '';
+        }, 1500);
+      }
     });
   });
 }
@@ -226,7 +993,11 @@ async function handleSearchKeydown(event) {
 
 async function runPaperSearch({ auto = false } = {}) {
   const query = paperSearch.value.trim();
-  if (!query) return;
+  console.log('🔍 Search called:', query, 'auto:', auto);
+  if (!query) {
+    console.log('❌ Empty query, aborting');
+    return;
+  }
 
   const searchToken = ++state.lastSearchToken;
   statusText.textContent = 'searching arXiv…';
@@ -249,7 +1020,9 @@ async function runPaperSearch({ auto = false } = {}) {
 }
 
 function renderSearchResults() {
+  console.log('📋 Rendering search results:', state.searchResults.length);
   if (!state.searchResults.length) {
+    console.log('❌ No results to show');
     hideSearchResults();
     return;
   }
@@ -274,6 +1047,7 @@ function renderSearchResults() {
   });
 
   paperResults.style.display = 'block';
+  console.log('✅ Search results displayed, element:', paperResults, 'visible:', paperResults.style.display);
 }
 
 function hideSearchResults() {
@@ -321,22 +1095,87 @@ function updateViewerFromComposer() {
     paperId: elements.paperId.value,
   });
 
-  if (pdfUrl) {
-    const framedUrl = withPdfFragment(pdfUrl);
-    if (pdfFrame.dataset.src !== framedUrl) {
-      pdfFrame.src = framedUrl;
-      pdfFrame.dataset.src = framedUrl;
-    }
+  if (pdfUrl && pdfUrl !== state.currentPdfUrl) {
+    // Load PDF using PDFRenderer
+    state.currentPdfUrl = pdfUrl;
     paperCaption.textContent = elements.paperTitle.value || elements.paperId.value || pdfUrl;
     pdfEmpty.classList.remove('visible');
-  } else {
-    if (pdfFrame.dataset.src) {
-      pdfFrame.src = 'about:blank';
-      pdfFrame.dataset.src = '';
-    }
+    
+    // Load the PDF document
+    state.pdfRenderer.loadDocument(pdfUrl)
+      .then(async () => {
+        console.log('PDF loaded successfully');
+        statusText.textContent = 'PDF loaded';
+        
+        // Try to restore reading state
+        if (state.progressTracker && elements.paperId.value) {
+          const savedState = await state.progressTracker.restoreState();
+          if (savedState && savedState.currentPage > 1) {
+            // Show resume reading prompt
+            showResumeReadingPrompt(savedState.currentPage);
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error loading PDF:', error);
+        statusText.textContent = 'Error loading PDF';
+        pdfEmpty.classList.add('visible');
+        pdfControls.style.display = 'none';
+      });
+  } else if (!pdfUrl) {
+    // No PDF to load
+    state.currentPdfUrl = null;
     paperCaption.textContent = 'No paper loaded';
     pdfEmpty.classList.add('visible');
+    pdfControls.style.display = 'none';
+    state.annotationLayer.clear();
   }
+}
+
+function showResumeReadingPrompt(page) {
+  // Create a toast notification to resume reading
+  const toast = document.createElement('div');
+  toast.className = 'resume-reading-toast';
+  toast.innerHTML = `
+    <div class="toast-content">
+      <span class="toast-icon">📖</span>
+      <div class="toast-text">
+        <strong>Resume reading?</strong>
+        <small>You were on page ${page}</small>
+      </div>
+      <div class="toast-actions">
+        <button class="toast-btn toast-btn-primary" id="resume-yes">Resume</button>
+        <button class="toast-btn toast-btn-secondary" id="resume-no">Start over</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(toast);
+  
+  // Animate in
+  setTimeout(() => toast.classList.add('visible'), 10);
+  
+  // Bind actions
+  document.getElementById('resume-yes').addEventListener('click', () => {
+    if (state.pdfRenderer) {
+      state.pdfRenderer.goToPage(page);
+    }
+    toast.classList.remove('visible');
+    setTimeout(() => toast.remove(), 300);
+  });
+  
+  document.getElementById('resume-no').addEventListener('click', () => {
+    toast.classList.remove('visible');
+    setTimeout(() => toast.remove(), 300);
+  });
+  
+  // Auto-dismiss after 10 seconds
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.classList.remove('visible');
+      setTimeout(() => toast.remove(), 300);
+    }
+  }, 10000);
 }
 
 function extractPaperContext(text) {
@@ -941,12 +1780,138 @@ function initDarkMode() {
   }
 }
 
+function initViberoMode() {
+  // Create Vibero mode toggle button
+  const viberoToggle = document.createElement('button');
+  viberoToggle.id = 'vibero-mode-toggle';
+  viberoToggle.className = 'vibero-mode-toggle';
+  viberoToggle.textContent = '✨ Vibero 沉浸模式';
+  viberoToggle.title = '切换到 Vibero 沉浸模式';
+  viberoToggle.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 80px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    transition: all 0.2s ease;
+  `;
+  
+  // Hover effect
+  viberoToggle.addEventListener('mouseenter', () => {
+    viberoToggle.style.transform = 'translateY(-2px)';
+    viberoToggle.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
+  });
+  viberoToggle.addEventListener('mouseleave', () => {
+    viberoToggle.style.transform = 'translateY(0)';
+    viberoToggle.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+  });
+  
+  // Click handler
+  viberoToggle.addEventListener('click', toggleViberoMode);
+  
+  // Add to page
+  document.body.appendChild(viberoToggle);
+  
+  // Check localStorage for Vibero mode preference
+  const isViberoMode = localStorage.getItem('truth-tutor-vibero-mode') === 'true';
+  if (isViberoMode) {
+    state.viberoMode = false; // Set to false first so toggle will switch to true
+    toggleViberoMode();
+  }
+}
+
 function toggleDarkMode() {
   const isDarkMode = document.documentElement.classList.toggle('dark-mode');
   localStorage.setItem('truth-tutor-dark-mode', isDarkMode);
   if (darkModeToggle) {
     darkModeToggle.textContent = isDarkMode ? '☀️' : '🌙';
   }
+}
+
+function toggleViberoMode() {
+  state.viberoMode = !state.viberoMode;
+  
+  // Update toggle button text
+  const viberoToggle = document.getElementById('vibero-mode-toggle');
+  if (viberoToggle) {
+    viberoToggle.textContent = state.viberoMode ? '📖 普通模式' : '✨ Vibero 沉浸模式';
+    viberoToggle.title = state.viberoMode ? '切换到普通模式' : '切换到 Vibero 沉浸模式';
+  }
+  
+  if (state.viberoMode) {
+    // Switch to Vibero mode
+    console.log('Switching to Vibero immersive mode');
+    
+    // Hide normal components
+    if (state.sidebar?.container) {
+      state.sidebar.container.style.display = 'none';
+    }
+    const navigatorContainer = document.getElementById('section-navigator');
+    if (navigatorContainer) {
+      navigatorContainer.style.display = 'none';
+    }
+    
+    // Show Vibero components
+    if (state.viberoSectionNavigator.leftPanel) {
+      state.viberoSectionNavigator.leftPanel.style.display = 'block';
+    }
+    if (state.viberoSectionNavigator.rightPanel) {
+      state.viberoSectionNavigator.rightPanel.style.display = 'block';
+    }
+    if (state.viberoSectionNavigator.floatingControls) {
+      state.viberoSectionNavigator.floatingControls.style.display = 'flex';
+    }
+    
+    // Re-render annotations with Vibero style
+    if (state.pdfRenderer) {
+      renderAnnotationsForPage(state.pdfRenderer.currentPage);
+    }
+    
+  } else {
+    // Switch to normal mode
+    console.log('Switching to normal mode');
+    
+    // Show normal components
+    if (state.sidebar?.container) {
+      state.sidebar.container.style.display = 'block';
+    }
+    const navigatorContainer = document.getElementById('section-navigator');
+    if (navigatorContainer) {
+      navigatorContainer.style.display = 'block';
+    }
+    
+    // Hide Vibero components
+    if (state.viberoSectionNavigator.leftPanel) {
+      state.viberoSectionNavigator.leftPanel.style.display = 'none';
+    }
+    if (state.viberoSectionNavigator.rightPanel) {
+      state.viberoSectionNavigator.rightPanel.style.display = 'none';
+    }
+    if (state.viberoSectionNavigator.floatingControls) {
+      state.viberoSectionNavigator.floatingControls.style.display = 'none';
+    }
+    
+    // Hide Vibero AI sidebar if open
+    if (state.viberoAnnotationLayer) {
+      state.viberoAnnotationLayer.hideAISidebar();
+    }
+    
+    // Re-render annotations with normal style
+    if (state.pdfRenderer) {
+      renderAnnotationsForPage(state.pdfRenderer.currentPage);
+    }
+  }
+  
+  // Save preference
+  localStorage.setItem('truth-tutor-vibero-mode', state.viberoMode);
 }
 
 function escapeHtml(value) {

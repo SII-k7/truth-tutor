@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  truth-tutor:
+    build: .
+    container_name: truth-tutor
+    restart: unless-stopped
+    ports:
+      - "3474:3474"
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=3474
+      - JWT_SECRET=${JWT_SECRET:-change-this-secret-in-production}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_PATH=/app/data/truth-tutor.db
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+    depends_on:
+      - redis
+    networks:
+      - truth-tutor-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3474/api/info', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: truth-tutor-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - truth-tutor-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  nginx:
+    image: nginx:alpine
+    container_name: truth-tutor-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - truth-tutor
+    networks:
+      - truth-tutor-network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  redis-data:
+    driver: local
+  nginx-logs:
+    driver: local
+
+networks:
+  truth-tutor-network:
+    driver: bridge

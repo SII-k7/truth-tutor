@@ -1,29 +1,45 @@
-# Truth Tutor Dockerfile
+# Multi-stage build for production
+FROM node:18-alpine AS builder
 
-FROM node:22-alpine
-
-# Install dependencies
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies (production only)
-RUN npm ci --omit=dev --ignore-scripts
+# Install dependencies
+RUN npm ci --only=production
 
 # Copy source code
 COPY . .
 
-# Expose web server port
+# Production stage
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install SQLite
+RUN apk add --no-cache sqlite
+
+# Copy from builder
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/bin ./bin
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/data ./data
+COPY --from=builder /app/examples ./examples
+
+# Create data directory
+RUN mkdir -p /app/data && chmod 777 /app/data
+
+# Expose port
 EXPOSE 3474
 
-# Environment variables (can be overridden)
-ENV TRUTH_TUTOR_HOST=0.0.0.0
-ENV TRUTH_TUTOR_PORT=3474
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3474/api/info', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Default command - start web UI
-CMD ["node", "bin/truth-tutor.mjs", "web"]
+# Run as non-root user
+USER node
 
-# Alternative commands:
-# Run CLI: docker run -it --rm -e OPENAI_API_KEY=your_key truth-tutor paper-ask --input /app/examples/paper-reading.json
-# Build prompts: docker run -it --rm truth-tutor prompt --topic "Test" --confusion "Test"
+# Start application
+CMD ["node", "bin/truth-tutor.mjs", "serve", "--host", "0.0.0.0", "--port", "3474"]
